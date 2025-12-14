@@ -12,10 +12,12 @@ BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user c
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 """
 
+#Libraries used
 import logging
 from typing import Self
 import math
 
+#Handle logging
 LOGLEVEL = logging.WARNING
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
@@ -31,7 +33,7 @@ class BigNumFloat():
 	__raw_div__ | (Work In Progress!!)
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
-	
+
 	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = 10) -> None:
 		#Basic structure of IEEE 754 floats
 		#NOTE!!
@@ -47,12 +49,10 @@ class BigNumFloat():
 		self.DivisionPrecisionInDigits = DivisionPrecisionInDigits
 	
 	def __raw_add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
 		OutputMantissa: int = 0
-		logging.debug("RAW ADDING")
-		logging.debug("self: %s" % (self.__repr__()))
-		logging.debug("Other: %s" % (Other.__repr__()))
 
 		LargerExponentMantissa: int = 0
 		SmallerExponentMantissa: int = 0
@@ -60,6 +60,7 @@ class BigNumFloat():
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
 
+		#Figure out which variable has a higher or lower exponent
 		if Other.Exponent - self.Exponent > 0:
 			LargerExponent = Other.Exponent
 			SmallerExponent = self.Exponent
@@ -75,13 +76,13 @@ class BigNumFloat():
 		
 		OutputExponent = SmallerExponent
 		
+		#Make sure the mantissas are aligned according to their exponents
 		DeltaExponent: int = LargerExponent - SmallerExponent
-		logging.debug("DeltaExponent = %s" % (DeltaExponent))
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 
+		#Do the actual adding
 		OutputMantissa = LargerExponentMantissa + SmallerExponentMantissa
-		logging.debug("Initial addition: %s" % (OutputMantissa))
-
+		#Make sure signs are handled properly
 		if OutputMantissa < 0:
 			OutputSign = False
 			OutputMantissa *= -1
@@ -92,12 +93,10 @@ class BigNumFloat():
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 	
 	def __raw_sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Create initial output variables to work on
 		OutputSign: bool = self.Sign
 		OutputExponent: int = 0
 		OutputMantissa: int = 0
-		logging.debug("RAW SUBTRACTING")
-		logging.debug("self: %s" % (self.__repr__()))
-		logging.debug("Other: %s" % (Other.__repr__()))
 
 		LargerExponentMantissa: int = 0
 		SmallerExponentMantissa: int = 0
@@ -105,6 +104,7 @@ class BigNumFloat():
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
 
+		#Figure out which variable has a higher or lower exponent
 		if Other.Exponent - self.Exponent > 0:
 			LargerExponent = Other.Exponent
 			SmallerExponent = self.Exponent
@@ -120,13 +120,14 @@ class BigNumFloat():
 		
 		OutputExponent = SmallerExponent
 		
+		#Make sure the mantissas are aligned according to their exponents
 		DeltaExponent: int = LargerExponent - SmallerExponent
-		logging.debug("DeltaExponent = %s" % (DeltaExponent))
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 
+		#Do the actual subtracting
 		OutputMantissa = LargerExponentMantissa - SmallerExponentMantissa
-		logging.debug("Initial subtracting: %s" % (OutputMantissa))
 		
+		#Make sure signs are handled properly
 		if OutputMantissa < 0:
 			OutputSign = False
 			OutputMantissa *= -1
@@ -134,12 +135,9 @@ class BigNumFloat():
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
 	def __raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
-		OutputMantissa: int = 0
-		logging.debug("RAW MULTIPLYING")
-		logging.debug("self: %s" % (self.__repr__()))
-		logging.debug("Other: %s" % (Other.__repr__()))
 
 		LargerExponentMantissa: int = 0
 		SmallerExponentMantissa: int = 0
@@ -147,6 +145,7 @@ class BigNumFloat():
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
 
+		#Figure out which variable has a higher or lower exponent
 		if Other.Exponent - self.Exponent > 0:
 			LargerExponent = Other.Exponent
 			SmallerExponent = self.Exponent
@@ -160,20 +159,17 @@ class BigNumFloat():
 			LargerExponentMantissa = self.Mantissa
 			SmallerExponentMantissa = Other.Mantissa
 		
-		logging.debug("LargerExponent: %s" % (LargerExponent))
-		logging.debug("SmallerExponent: %s" % (SmallerExponent))
-		
+		#Make sure the mantissas are aligned according to their exponents
 		DeltaExponent: int = LargerExponent - SmallerExponent
-		logging.debug("DeltaExponent = %s" % (DeltaExponent))
-
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 		
-		try:
-			OutputMantissa = int(LargerExponentMantissa * SmallerExponentMantissa)
-		except OverflowError:
-			print("Self: %s, Other: %s" % (self.__str__(), Other.__str__()))
-			raise OverflowError
+		#Do the actual multiplication
+		OutputMantissa = int(LargerExponentMantissa * SmallerExponentMantissa)
 
+		#Make sure signs are handled properly
+		OutputSign = bool(int((int(self.Sign)+int(Other.Sign))/2))
+
+		#Make sure the exponent is handled properly
 		OutputExponent = SmallerExponent - DeltaExponent
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
@@ -255,19 +251,23 @@ class BigNumFloat():
 				return self.__raw_sub__(Other)
 
 	def ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat":
+		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
 		OutputMantissa: int = 0
 		TemporaryMantissa: float = InputFloat
 
+		#Handle the sign first
 		if InputFloat < 0:
 			OutputSign = False
 			TemporaryMantissa *= -1
 
+		#Handle digits properly
 		if math.floor(InputFloat)-InputFloat != 0:
-			OutputExponent = -10
-			TemporaryMantissa = InputFloat*10**10
+			OutputExponent = -self.DivisionPrecisionInDigits
+			TemporaryMantissa = InputFloat*(10**self.DivisionPrecisionInDigits)
 		
+		#Make sure mantissa is an int
 		OutputMantissa = int(TemporaryMantissa)
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
@@ -276,6 +276,7 @@ class BigNumFloat():
 		return "BigNumFloat.BigNumFloat(Sign=%s, Exponent=%s, Mantissa=%s)" % (self.Sign, int(self.Exponent), int(self.Mantissa))
 	
 	def __str__(self) -> str:
+		#Handle 0 or sign properly
 		OutputString: str = ""
 		if self.Mantissa != 0:
 			if self.Sign:
@@ -286,6 +287,7 @@ class BigNumFloat():
 			self.Sign = True
 			return "0"
 		
+		#Lazily convert to string
 		OutputString += str(int(self.Mantissa * 10**(self.Exponent)))
 
 		return OutputString
