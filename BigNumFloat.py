@@ -1,4 +1,15 @@
-"""BigNumFloat.py -> My implementation of arbitrary precision floats using the BigNum behaviour ffrfom Python
+"""BigNumFloat.py -> My implementation of arbitrary precision floats using the BigNum behaviour from Python
+Work In Progress!
+Main user classes:
+
+BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
+	Main User Functions:
+
+	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
+	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
+	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
+	__raw_div__ | (Work In Progress!!)
+	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 """
 
 import logging
@@ -11,6 +22,16 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
 class BigNumFloat():
+	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
+	Main User Functions:
+
+	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
+	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
+	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
+	__raw_div__ | (Work In Progress!!)
+	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
+	"""
+	
 	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = 10) -> None:
 		#Basic structure of IEEE 754 floats
 		#NOTE!!
