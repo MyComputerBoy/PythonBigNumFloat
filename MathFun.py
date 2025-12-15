@@ -20,22 +20,13 @@ class BigNumComplex():
 		self.Imaginary: "BigNumFloat.BigNumFloat" = Imaginary
 
 	def __add__(self: Self, Other: "BigNumComplex") -> "BigNumComplex":
-		RealPart: "BigNumFloat.BigNumFloat" = self.Real + Other.Real
-		ImaginaryPart: "BigNumFloat.BigNumFloat" = self.Imaginary + Other.Imaginary
-
-		return BigNumComplex(RealPart, ImaginaryPart)
+		return BigNumComplex(self.Real + Other.Real, self.Imaginary + Other.Imaginary)
 
 	def __sub__(self: Self, Other: "BigNumComplex") -> "BigNumComplex":
-		RealPart: "BigNumFloat.BigNumFloat" = self.Real - Other.Real
-		ImaginaryPart: "BigNumFloat.BigNumFloat" = self.Imaginary - Other.Imaginary
-
-		return BigNumComplex(RealPart, ImaginaryPart)
+		return BigNumComplex(self.Real - Other.Real, self.Imaginary - Other.Imaginary)
 
 	def __mul__(self: Self, Other: "BigNumComplex") -> "BigNumComplex":
-		RealPart: "BigNumFloat.BigNumFloat" = (self.Real * Other.Real) - (self.Imaginary * Other.Imaginary)
-		ImaginaryPart: "BigNumFloat.BigNumFloat" = (self.Real * Other.Imaginary) + (self.Imaginary * Other.Real)
-
-		return BigNumComplex(RealPart, ImaginaryPart)
+		return BigNumComplex(((self.Real * Other.Real) - (self.Imaginary * Other.Imaginary)), ((self.Real * Other.Imaginary) + (self.Imaginary * Other.Real)))
 
 	def __truediv__(self: Self, Other: "BigNumComplex") ->"BigNumComplex":
 		RealPartDivisor: "BigNumFloat.BigNumFloat" = (self.Real*Other.Real) + (self.Imaginary * Other.Imaginary)
@@ -43,13 +34,10 @@ class BigNumComplex():
 		ImaginaryPartDivisor: "BigNumFloat.BigNumFloat" = (self.Imaginary * Other.Real) - (self.Real * Other.Imaginary)
 		ImaginaryPartDividend: "BigNumFloat.BigNumFloat" = Other.Real * Other.Real + Other.Imaginary * Other.Imaginary
 
-		RealPart: "BigNumFloat.BigNumFloat" = RealPartDivisor / RealPartDividend
-		ImaginaryPart: "BigNumFloat.BigNumFloat" = ImaginaryPartDivisor / ImaginaryPartDividend
-
-		return BigNumComplex(RealPart, ImaginaryPart)
+		return BigNumComplex((RealPartDivisor / RealPartDividend), (ImaginaryPartDivisor / ImaginaryPartDividend))
 
 	def GetMagnitudeSquared(self: Self) -> "BigNumFloat.BigNumFloat":
-		return self.Real * self.Real + self.Imaginary * self.Imaginary
+		return (self.Real * self.Real) + (self.Imaginary * self.Imaginary)
 
 	def CopyWithoutCloning(self: Self) -> "BigNumComplex":
 		return BigNumComplex(self.Real, self.Imaginary)
@@ -62,16 +50,13 @@ BNFHandlerGlobal: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 FOUR: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(4)
 
 def SingleMandelbrotCalculation(InputComplexNumber: "BigNumComplex", OffsetComplexNumber: "BigNumComplex") -> "BigNumComplex":
-	MultiplicationPart: "BigNumComplex" = (InputComplexNumber * InputComplexNumber)
-	AdditionPart: "BigNumComplex" = MultiplicationPart + OffsetComplexNumber
-	return AdditionPart
+	return (InputComplexNumber * InputComplexNumber) + OffsetComplexNumber
 
 def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: int) -> int:
 	global FOUR
 
 	#Preemtive check if the magnitude squared is already over four
-	Magnitude: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared()
-	SignToTest: "BigNumFloat.BigNumFloat" = Magnitude - FOUR
+	SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
 	if SignToTest.Sign:
 		return 0
 
@@ -86,9 +71,7 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 		IterationComplexNumber = SingleMandelbrotCalculation(IterationComplexNumber, InputComplexNumber)
 
 		#Computing magnitude squared
-		Magnitude: "BigNumFloat.BigNumFloat" = IterationComplexNumber.GetMagnitudeSquared()
-
-		SignToTest: "BigNumFloat.BigNumFloat" = Magnitude - FOUR
+		SignToTest: "BigNumFloat.BigNumFloat" = IterationComplexNumber.GetMagnitudeSquared() - FOUR
 		if SignToTest.Sign:
 			return i
 
@@ -99,14 +82,14 @@ def __main__():
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	IterationDepth: int = 64
+	IterationDepth: int = 1024
 
-	XResolution: int = 1024
-	YResolution: int = 576
-	XStart: float = .431138335
-	YStart: float = 0.341807045
-	XEnd: float = .458295048
-	YEnd: float = .321524588
+	XResolution: int = 1080
+	YResolution: int = 1080
+	XStart: float = -2
+	YStart: float = -2
+	XEnd: float = 2
+	YEnd: float = 2
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
@@ -128,8 +111,6 @@ def __main__():
 	XDXBN: "BigNumFloat.BigNumFloat" = DXBN/XResolutionBN
 	YDYBN: "BigNumFloat.BigNumFloat" = DYBN/YResolutionBN
 
-	XScalar: "BigNumFloat.BigNumFloat"
-	YScalar: "BigNumFloat.BigNumFloat"
 	XPosition: "BigNumFloat.BigNumFloat"
 	YPosition: "BigNumFloat.BigNumFloat"
 	TemporaryComplexNumber: "BigNumComplex"
@@ -139,25 +120,30 @@ def __main__():
 	WorkingImage = IM.new('F', size=(XResolution,YResolution)) # type: ignore
 	WorkingImagePixels = WorkingImage.load() # type: ignore
 
+	XPosition = XStartBN
+	YPosition = YStartBN
+
 	#Do the actual Mandelbrot calculations
 	for j in range(YResolution):
 		TemporaryOutputString: str = ""
 		for i in range(XResolution):
-			XScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(j) * XDXBN
-			YScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(i) * YDYBN
-			YPosition = YStartBN + YScalar
-			XPosition = XStartBN + XScalar
-
 			TemporaryComplexNumber = BigNumComplex(XPosition, YPosition)
+			logging.debug("Position: %s" % (TemporaryComplexNumber))
 
+			#Do actual iterations
 			TemporaryDepthInMandelbrot: int = DepthInMandelbrotSet(TemporaryComplexNumber, IterationDepth)
 
+			#Process output to image
 			PointProcessed: float = TemporaryDepthInMandelbrot/IterationDepth
 			WorkingImagePixels[i,j] = PointProcessed # type: ignore
 			if TemporaryDepthInMandelbrot == IterationDepth:
 				TemporaryOutputString += "■"
 			else:
 				TemporaryOutputString += " "
+			#Convert to BigNumFloat positions, then BigNumComplex
+			XPosition = XPosition + XDXBN
+		XPosition = XStartBN
+		YPosition = YPosition + YDYBN
 		print("|%s|" % (TemporaryOutputString))
 	
 	EndTime = time.time()

@@ -22,7 +22,7 @@ LOGLEVEL = logging.WARNING
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 40
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
