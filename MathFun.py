@@ -128,13 +128,15 @@ def __main__(DoDebug: bool = False):
 	input()
 
 def __test__():
-	a: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -4, 123456)
-	b: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -3, 987654)
+	a: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -9, 12345600000)
+	b: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -9, 987654000000)
 	c: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(355)
 	d: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(113)
 
-	e = a/b
-	print(e)
+	# e = c/d
+	f = a/b
+	# print(e)
+	print(f)
 
 # __main__()
 

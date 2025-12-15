@@ -18,7 +18,7 @@ from typing import Self
 import math
 
 #Handle logging
-LOGLEVEL = logging.WARNING
+LOGLEVEL = logging.DEBUG
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
@@ -273,20 +273,25 @@ class BigNumFloat():
 		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
 		
 		#Do the actual long ass division
-		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)
+		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits+1)
 		for i in range(DivisionIterationLength, -1, -1):
 			#Practically bute forcing the long ass division for easier implementation
+			logging.debug("     Divisor: %s" % (DivisorMantissa))
 			TemporaryScaledDividend = DividendMantissa * 10**i
 
 			#Iterate through the different digits it could be computing
 			#Since I basically brute force this, I 'need' to check for multiplying the dividend by 0 to not omit 0's in the result
 			for j in range(9, -1, -1):
+				if j == 0:
+					OutputMantissaAsString += "0"
+					break
 				TemporaryMultipliedScaledDividend = j * TemporaryScaledDividend
 
 				#Calculate final subtraction with everything compensated for and aligned properly
-				SubtractionResult = DivisorMantissa - TemporaryMultipliedScaledDividend
+				SubtractionResult = int(int(DivisorMantissa) - int(TemporaryMultipliedScaledDividend))
 
 				if SubtractionResult >= 0:
+					logging.debug("HIT! Dividend: %s" % (TemporaryMultipliedScaledDividend))
 					#Write the result to OutputMantissaAsString
 					OutputMantissaAsString += str(j)
 
