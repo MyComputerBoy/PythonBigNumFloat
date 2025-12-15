@@ -1,8 +1,6 @@
 import BigNumFloat
 from typing import Self
 
-BigNumFloat.DIVISIONPRECISIONINDIGITSGLOBAL = 10
-
 class BigNumComplex():
 	def __init__(self: Self, Real: "BigNumFloat.BigNumFloat", Imaginary: "BigNumFloat.BigNumFloat") -> None:
 		self.Real: "BigNumFloat.BigNumFloat" = Real
@@ -52,7 +50,7 @@ def SingleMandelbrotCalculation(InputComplexNumber: "BigNumComplex", OffsetCompl
 def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: int) -> int:
 	global FOUR
 	SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
-	if not SignToTest.Sign:
+	if SignToTest.Sign:
 		return 0
 	
 	IterationComplexNumber: "BigNumComplex" = InputComplexNumber
@@ -60,18 +58,18 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 		IterationComplexNumber = SingleMandelbrotCalculation(IterationComplexNumber, InputComplexNumber)
 
 		SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
-		if not SignToTest.Sign:
+		if SignToTest.Sign:
 			return i
 	
 	return IterationDepth
 
-def __main__(DoDebug: bool = True):
+def __main__(DoDebug: bool = False):
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	IterationDepth: int = 100
+	IterationDepth: int = 10
 
-	XResolution: int = 1024
-	YResolution: int = 1024
+	XResolution: int = 128
+	YResolution: int = 128
 	XStart: float = -1
 	YStart: float = -1
 	XEnd: float = 1
@@ -117,12 +115,4 @@ def __main__(DoDebug: bool = True):
 	
 	input()
 
-# __main__()
-
-a: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1)
-b: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1000)
-
-c: "BigNumFloat.BigNumFloat" = a/b
-print(c)
-
-input()
+__main__()
