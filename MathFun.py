@@ -99,14 +99,14 @@ def __main__():
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	IterationDepth: int = 100
+	IterationDepth: int = 64
 
-	XResolution: int = 1920
-	YResolution: int = 1920
-	XStart: float = -1
-	YStart: float = -1
-	XEnd: float = 1
-	YEnd: float = 1
+	XResolution: int = 1024
+	YResolution: int = 576
+	XStart: float = .431138335
+	YStart: float = 0.341807045
+	XEnd: float = .458295048
+	YEnd: float = .321524588
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
@@ -136,24 +136,24 @@ def __main__():
 
 	#Handle image saving
 	
-	WorkingImage = IM.new('F', size=(XResolution,YResolution))
-	WorkingImagePixels = WorkingImage.load()
+	WorkingImage = IM.new('F', size=(XResolution,YResolution)) # type: ignore
+	WorkingImagePixels = WorkingImage.load() # type: ignore
 
 	#Do the actual Mandelbrot calculations
-	for i in range(XResolution):
+	for j in range(YResolution):
 		TemporaryOutputString: str = ""
-		for j in range(YResolution):
-			XScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(i) * XDXBN
-			YScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(j) * YDYBN
+		for i in range(XResolution):
+			XScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(j) * XDXBN
+			YScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(i) * YDYBN
 			YPosition = YStartBN + YScalar
 			XPosition = XStartBN + XScalar
 
-			TemporaryComplexNumber = BigNumComplex(YPosition, XPosition)
+			TemporaryComplexNumber = BigNumComplex(XPosition, YPosition)
 
 			TemporaryDepthInMandelbrot: int = DepthInMandelbrotSet(TemporaryComplexNumber, IterationDepth)
 
 			PointProcessed: float = TemporaryDepthInMandelbrot/IterationDepth
-			WorkingImagePixels[i,j] = PointProcessed
+			WorkingImagePixels[i,j] = PointProcessed # type: ignore
 			if TemporaryDepthInMandelbrot == IterationDepth:
 				TemporaryOutputString += "■"
 			else:
@@ -162,7 +162,7 @@ def __main__():
 	
 	EndTime = time.time()
 	dTime = math.floor(EndTime-StartTime)
-	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime))
+	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
 __main__()
 
