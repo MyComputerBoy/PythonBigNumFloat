@@ -15,15 +15,14 @@ BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user c
 #Libraries used
 import logging
 from typing import Self
-import math
 
 #Handle logging
-LOGLEVEL = logging.DEBUG
+LOGLEVEL = logging.WARNING
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 100
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -36,7 +35,7 @@ class BigNumFloat():
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
 
-	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = DIVISIONPRECISIONINDIGITSGLOBAL) -> None:
+	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = DIVISIONPRECISIONINDIGITSGLOBAL, DoDebugging: bool = False) -> None:
 		#Basic structure of IEEE 754 floats
 		#NOTE!!
 		#Since Python has signed ints by default, I will redefine the exponent to just be normal numbers, no offset or anything
@@ -49,11 +48,16 @@ class BigNumFloat():
 
 		#Variables to handle dynamic problems
 		self.DivisionPrecisionInDigits = DivisionPrecisionInDigits
+
+		#Debugging stufff
+		self.DODEBUGGING: bool = DoDebugging
 	
 	def __raw_add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("\nBigNumFloat.__raw__add__(%s, %s):" % (str(self), str(Other)))
 
 		#Create initial output variables to work on
-		OutputSign: bool = True
+		OutputSign: bool = self.Sign
 		OutputExponent: int = 0
 		OutputMantissa: int = 0
 
@@ -89,16 +93,15 @@ class BigNumFloat():
 		if OutputMantissa < 0:
 			OutputSign = False
 			OutputMantissa *= -1
-		
-		if (not self.Sign) and (not Other.Sign):
-			OutputSign = False
-		elif (self.Sign) and (not Other.Sign):
-			OutputSign = False
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		if self.DODEBUGGING:
+			logging.debug("Output: %s\n" % (Result.__repr__()))
 		return Result
 	
 	def __raw_sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("\nBigNumFloat.__raw__sub__(%s, %s):" % (str(self), str(Other)))
 
 		#Create initial output variables to work on
 		OutputSign: bool = self.Sign
@@ -107,6 +110,10 @@ class BigNumFloat():
 
 		LargerExponentMantissa: int = 0
 		SmallerExponentMantissa: int = 0
+
+		FirstMantissa: int = 0
+		LastMantissa: int = 0
+		SelfIsLarger: bool = True
 
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
@@ -118,6 +125,7 @@ class BigNumFloat():
 
 			LargerExponentMantissa = Other.Mantissa
 			SmallerExponentMantissa = self.Mantissa
+			SelfIsLarger = False
 		else:
 			LargerExponent = self.Exponent
 			SmallerExponent = Other.Exponent
@@ -131,15 +139,28 @@ class BigNumFloat():
 		DeltaExponent: int = LargerExponent - SmallerExponent
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 
+		if SelfIsLarger:
+			FirstMantissa = LargerExponentMantissa
+
+			LastMantissa = SmallerExponentMantissa
+		else:
+			FirstMantissa = SmallerExponentMantissa
+
+			LastMantissa = LargerExponentMantissa
+
 		#Do the actual subtracting
-		OutputMantissa = LargerExponentMantissa - SmallerExponentMantissa
+		OutputMantissa = FirstMantissa - LastMantissa
 		
 		#Make sure signs are handled properly
 		if OutputMantissa < 0:
+			if self.DODEBUGGING:
+				logging.debug("OutputMantissa negative!")
 			OutputSign = False
 			OutputMantissa *= -1
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		if self.DODEBUGGING:
+			logging.debug("Output: %s\n" % (Result.__repr__()))
 		return Result
 	
 	def __add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
@@ -167,6 +188,8 @@ class BigNumFloat():
 				return self.__raw_sub__(Other)
 
 	def __mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("\nBigNumFloat.__mul__(%s, %s):" % (str(self), str(Other)))
 
 		#Create initial output variables to work on
 		OutputSign: bool = True
@@ -179,7 +202,10 @@ class BigNumFloat():
 		SmallerExponent: int = 0
 
 		if self.IsZero() or Other.IsZero():
-			return self.ConvertIEEEFloatToBigNumFloat(0)
+			Result: "BigNumFloat" = self.ConvertIEEEFloatToBigNumFloat(0)
+			if self.DODEBUGGING:
+				logging.debug("Output: %s\n" % (Result.__repr__()))
+			return Result
 
 		#Figure out which variable has a higher or lower exponent
 		if Other.Exponent - self.Exponent > 0:
@@ -200,7 +226,7 @@ class BigNumFloat():
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 		
 		#Do the actual multiplication
-		OutputMantissa = int(LargerExponentMantissa * SmallerExponentMantissa)
+		OutputMantissa = abs(int(LargerExponentMantissa * SmallerExponentMantissa))
 
 		#Make sure signs are handled properly
 		OutputSign = not (self.Sign ^ Other.Sign)
@@ -208,16 +234,29 @@ class BigNumFloat():
 		#Make sure the exponent is handled properly
 		OutputExponent = SmallerExponent + LargerExponent + DeltaExponent
 
+		#Clamp digits precision to self.DivisionPrecisionInDigits
+		if OutputExponent < -self.DivisionPrecisionInDigits:
+			while OutputExponent < -self.DivisionPrecisionInDigits:
+				OutputMantissa = int(OutputMantissa/10)
+				OutputExponent += 1
+
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		if self.DODEBUGGING:
+			logging.debug("Output: %s\n" % (Result.__repr__()))
 		return Result
 
 	def __truediv__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("\nBigNumFloat.__truediv__(%s, %s):" % (str(self), str(Other)))
 
 		if Other.IsZero():
 			raise ZeroDivisionError
 		
 		if self.IsZero():
-			return self
+			Result: "BigNumFloat" = self.ConvertIEEEFloatToBigNumFloat(0)
+			if self.DODEBUGGING:
+				logging.debug("Output: %s\n" % (Result.__repr__()))
+			return Result
 
 		#Create initial output variables to work on
 		OutputSign: bool = True
@@ -287,11 +326,11 @@ class BigNumFloat():
 				TemporaryMultipliedScaledDividend = j * TemporaryScaledDividend
 
 				#Calculate final subtraction with everything compensated for and aligned properly
-				SubtractionResult = int(int(DivisorMantissa) - int(TemporaryMultipliedScaledDividend))
-				logging.debug("Divisor: %s, dividend: %s, result: %s, index: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult, j))
+				SubtractionResult = DivisorMantissa - TemporaryMultipliedScaledDividend
+				if self.DODEBUGGING:
+					logging.debug("Divisor: %s, dividend: %s, result: %s, index: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult, j))
 
 				if SubtractionResult >= 0:
-					print("\n")
 					#Write the result to OutputMantissaAsString
 					OutputMantissaAsString += str(j)
 
@@ -300,7 +339,7 @@ class BigNumFloat():
 					break
 		
 		#Final conversion from string to int
-		OutputMantissa = int(OutputMantissaAsString)
+		OutputMantissa = abs(int(OutputMantissaAsString))
 
 		#Make sure the exponent is handled properly
 		OutputExponent = self.Exponent - Other.Exponent - self.DivisionPrecisionInDigits - DividendLength
@@ -308,7 +347,15 @@ class BigNumFloat():
 		#Make sure signs are handled properly
 		OutputSign = not (self.Sign ^ Other.Sign)
 
+		#Clamp digits precision to self.DivisionPrecisionInDigits
+		if OutputExponent < -self.DivisionPrecisionInDigits:
+			while OutputExponent < -self.DivisionPrecisionInDigits:
+				OutputMantissa = int(OutputMantissa/10)
+				OutputExponent += 1
+		
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		if self.DODEBUGGING:
+			logging.debug("Output: %s\n" % (Result.__repr__()))
 		return Result
 
 	def ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat":
@@ -327,14 +374,13 @@ class BigNumFloat():
 		#Handle the sign first
 		if InputFloat < 0:
 			OutputSign = False
-			TemporaryMantissa *= -1
 
 		#Handle digits properly
 		OutputExponent = -self.DivisionPrecisionInDigits
 		TemporaryMantissa = InputFloat*(10**self.DivisionPrecisionInDigits)
 		
 		#Make sure mantissa is an int
-		OutputMantissa = int(TemporaryMantissa)
+		OutputMantissa = int(abs(TemporaryMantissa))
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
@@ -346,8 +392,14 @@ class BigNumFloat():
 	
 	def __str__(self) -> str:
 		#Handle 0 or sign properly
-		logging.debug("BigNumFloat.__str__():")
+		# logging.debug("BigNumFloat.__str__():")
+
+		if self.Mantissa < 0:
+			logging.debug("Debugging info: self.__repr__(): %s" % (self.__repr__()))
+			raise Exception("Error: Mantissa is not normalised to positive integers only!")
+
 		OutputString: str = ""
+		# logging.debug("Sign: %s" % (self.Sign))
 		if not self.IsZero():
 			if self.Sign:
 				OutputString += "+"
@@ -358,7 +410,7 @@ class BigNumFloat():
 			return "0"
 		
 		#Lazily convert to string
-		logging.debug("Exponent: %s" % (self.Exponent))
+		# logging.debug("Exponent: %s" % (self.Exponent))
 		OutputString += str(int(self.Mantissa * 10**(self.Exponent)))
 
 		#Actually show decimals too
@@ -375,9 +427,9 @@ class BigNumFloat():
 			# TemporaryStringMantissa = TemporaryStringMantissa[1:]
 			pass
 		
-		logging.debug("TemporaryStringMantissa: %s, Exponent: %s, LeadingZeros: %s" % (TemporaryStringMantissa, self.Exponent, LeadinZeros))
+		# logging.debug("TemporaryStringMantissa: %s, Exponent: %s, LeadingZeros: %s" % (TemporaryStringMantissa, self.Exponent, LeadinZeros))
 		TemporaryMantissa: str = TemporaryStringMantissa[self.Exponent:(-self.Exponent+1)]
-		logging.debug("TemporaryMantissa: %s" % (TemporaryMantissa))
+		# logging.debug("TemporaryMantissa: %s" % (TemporaryMantissa))
 		OutputString += TemporaryMantissa
 
 		return OutputString

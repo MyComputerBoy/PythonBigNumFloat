@@ -1,5 +1,18 @@
+"""MathFun.py -> My math library having fun with my BigNumFloat lobrary
+"""
+
 import BigNumFloat
+import logging
 from typing import Self
+from PIL import Image as IM
+import time
+import math
+
+#Handle logging
+LOGLEVEL = logging.WARNING
+
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
+logging.getLogger().setLevel(LOGLEVEL)
 
 class BigNumComplex():
 	def __init__(self: Self, Real: "BigNumFloat.BigNumFloat", Imaginary: "BigNumFloat.BigNumFloat") -> None:
@@ -44,6 +57,7 @@ class BigNumComplex():
 	def __str__(self: Self) -> str:
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
 
+#Create BigNumFloat handler for ease of use, and define FUOR preemtively
 BNFHandlerGlobal: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 FOUR: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(4)
 
@@ -54,17 +68,24 @@ def SingleMandelbrotCalculation(InputComplexNumber: "BigNumComplex", OffsetCompl
 
 def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: int) -> int:
 	global FOUR
-	SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
+
+	#Preemtive check if the magnitude squared is already over four
+	Magnitude: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared()
+	SignToTest: "BigNumFloat.BigNumFloat" = Magnitude - FOUR
 	if SignToTest.Sign:
 		return 0
 
+	#Clone without using pointer
 	IterationComplexNumber: "BigNumComplex" = InputComplexNumber.CopyWithoutCloning()
 	if IterationComplexNumber is InputComplexNumber:
 		raise Exception("Cloned objects, not copied.")
 
+	#Actual Mandelbrot iterations
 	for i in range(IterationDepth):
+		#Actual computation
 		IterationComplexNumber = SingleMandelbrotCalculation(IterationComplexNumber, InputComplexNumber)
 
+		#Computing magnitude squared
 		Magnitude: "BigNumFloat.BigNumFloat" = IterationComplexNumber.GetMagnitudeSquared()
 
 		SignToTest: "BigNumFloat.BigNumFloat" = Magnitude - FOUR
@@ -73,18 +94,25 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 
 	return IterationDepth
 
-def __main__(DoDebug: bool = False):
+def __main__():
+	#Handle basic variables
+	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	IterationDepth: int = 50
+	IterationDepth: int = 100
 
-	XResolution: int = 128
-	YResolution: int = 128
-	XStart: float = -2
-	YStart: float = -2
-	XEnd: float = 2
-	YEnd: float = 2
+	XResolution: int = 1920
+	YResolution: int = 1920
+	XStart: float = -1
+	YStart: float = -1
+	XEnd: float = 1
+	YEnd: float = 1
 
+	#Handle path to save to image
+	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
+	ImagePath: str = "D:/Users/hatel/Pictures/BigNumFloat/" + FormatName
+
+	#Convert static variables
 	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
 	YResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YResolution)
 
@@ -94,8 +122,11 @@ def __main__(DoDebug: bool = False):
 	YStartBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YStart)
 	YEndBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YEnd)
 
-	XDXBN: "BigNumFloat.BigNumFloat" = (XStartBN - XEndBN)/XResolutionBN
-	YDYBN: "BigNumFloat.BigNumFloat" = (YStartBN - YEndBN)/YResolutionBN
+	#Convert more 'dynamic' variables
+	DXBN: "BigNumFloat.BigNumFloat" = XEndBN - XStartBN
+	DYBN: "BigNumFloat.BigNumFloat" = YEndBN - YStartBN
+	XDXBN: "BigNumFloat.BigNumFloat" = DXBN/XResolutionBN
+	YDYBN: "BigNumFloat.BigNumFloat" = DYBN/YResolutionBN
 
 	XScalar: "BigNumFloat.BigNumFloat"
 	YScalar: "BigNumFloat.BigNumFloat"
@@ -103,43 +134,36 @@ def __main__(DoDebug: bool = False):
 	YPosition: "BigNumFloat.BigNumFloat"
 	TemporaryComplexNumber: "BigNumComplex"
 
-	if DoDebug:
-		input()
+	#Handle image saving
+	
+	WorkingImage = IM.new('F', size=(XResolution,YResolution))
+	WorkingImagePixels = WorkingImage.load()
 
+	#Do the actual Mandelbrot calculations
 	for i in range(XResolution):
 		TemporaryOutputString: str = ""
 		for j in range(YResolution):
 			XScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(i) * XDXBN
 			YScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(j) * YDYBN
-
-			XPosition = XStartBN + XScalar
 			YPosition = YStartBN + YScalar
+			XPosition = XStartBN + XScalar
 
-			TemporaryComplexNumber = BigNumComplex(XPosition, YPosition)
+			TemporaryComplexNumber = BigNumComplex(YPosition, XPosition)
 
 			TemporaryDepthInMandelbrot: int = DepthInMandelbrotSet(TemporaryComplexNumber, IterationDepth)
 
+			PointProcessed: float = TemporaryDepthInMandelbrot/IterationDepth
+			WorkingImagePixels[i,j] = PointProcessed
 			if TemporaryDepthInMandelbrot == IterationDepth:
 				TemporaryOutputString += "■"
 			else:
 				TemporaryOutputString += " "
-		print(TemporaryOutputString)
+		print("|%s|" % (TemporaryOutputString))
+	
+	EndTime = time.time()
+	dTime = math.floor(EndTime-StartTime)
+	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime))
 
-	input()
+__main__()
 
-def __test__():
-	a: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -4, 123456)
-	b: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -4, 9876540)
-	c: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(355)
-	d: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(113)
-
-	# e = c/d
-	f = a/b
-	# print(e)
-	print(f)
-
-# __main__()
-
-__test__()
-
-input()
+input("End of program.")
