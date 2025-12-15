@@ -1,6 +1,8 @@
 import BigNumFloat
 from typing import Self
 
+BigNumFloat.DIVISIONPRECISIONINDIGITSGLOBAL = 10
+
 class BigNumComplex():
 	def __init__(self: Self, Real: "BigNumFloat.BigNumFloat", Imaginary: "BigNumFloat.BigNumFloat") -> None:
 		self.Real: "BigNumFloat.BigNumFloat" = Real
@@ -35,20 +37,52 @@ class BigNumComplex():
 
 		return BigNumComplex(RealPart, ImaginaryPart)
 	
+	def GetMagnitudeSquared(self: Self) -> "BigNumFloat.BigNumFloat":
+		return self.Real * self.Real + self.Imaginary * self.Imaginary
+
 	def __str__(self: Self) -> str:
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
+
+BNFHandlerGlobal: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+FOUR: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(4)
+
+def SingleMandelbrotCalculation(InputComplexNumber: "BigNumComplex", OffsetComplexNumber: "BigNumComplex") -> "BigNumComplex":
+	return InputComplexNumber * InputComplexNumber + OffsetComplexNumber
+
+def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: int) -> int:
+	global FOUR
+	SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
+	if not SignToTest.Sign:
+		return 0
+	
+	IterationComplexNumber: "BigNumComplex" = InputComplexNumber
+	for i in range(IterationDepth):
+		IterationComplexNumber = SingleMandelbrotCalculation(IterationComplexNumber, InputComplexNumber)
+
+		SignToTest: "BigNumFloat.BigNumFloat" = InputComplexNumber.GetMagnitudeSquared() - FOUR
+		if not SignToTest.Sign:
+			return i
+	
+	return IterationDepth
 
 def __main__():
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	XResolution: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1024)
-	YResolution: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1024)
+	XResolution: int = 1024
+	YResolution: int = 1024
+	XStart: float = -1
+	YStart: float = -1
+	XEnd: float = 1
+	YEnd: float = 1
 
-	XStart: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(-1)
-	XEnd: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
+	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
+	YResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YResolution)
 
-	YStart: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(-1)
-	YEnd: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
+	XStartBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XStart)
+	XEndBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XEnd)
 
-	XDX: "BigNumFloat.BigNumFloat" = (XStart - XEnd)/XResolution
-	YDY: "BigNumFloat.BigNumFloat" = (YStart - YEnd)/YResolution
+	YStartBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YStart)
+	YEndBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YEnd)
+
+	XDXBN: "BigNumFloat.BigNumFloat" = (XStartBN - XEndBN)/XResolutionBN
+	YDYBN: "BigNumFloat.BigNumFloat" = (YStartBN - YEndBN)/YResolutionBN

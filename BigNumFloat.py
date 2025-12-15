@@ -23,6 +23,8 @@ LOGLEVEL = logging.WARNING
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
+
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
 	Main User Functions:
@@ -34,7 +36,7 @@ class BigNumFloat():
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
 
-	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = 10) -> None:
+	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = DIVISIONPRECISIONINDIGITSGLOBAL) -> None:
 		#Basic structure of IEEE 754 floats
 		#NOTE!!
 		#Since Python has signed ints by default, I will redefine the exponent to just be normal numbers, no offset or anything
