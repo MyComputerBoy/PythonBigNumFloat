@@ -8,7 +8,7 @@ BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user c
 	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
 	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
 	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
-	__raw_div__ | (Work In Progress!!)
+	__raw_div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 """
 
@@ -18,7 +18,7 @@ from typing import Self
 import math
 
 #Handle logging
-LOGLEVEL = logging.WARNING
+LOGLEVEL = logging.DEBUG
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
@@ -30,7 +30,7 @@ class BigNumFloat():
 	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
 	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
 	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
-	__raw_div__ | (Work In Progress!!)
+	__raw_div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
 
@@ -175,21 +175,24 @@ class BigNumFloat():
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
 	def __raw_div__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
+		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
 		OutputMantissa: int = 0
-		logging.debug("RAW DIVISION")
-		logging.debug("self: %s" % (self.__repr__()))
-		logging.debug("Other: %s" % (Other.__repr__()))
+		OutputMantissaAsString: str = ""
 
 		LargerExponentMantissa: int = 0
 		SmallerExponentMantissa: int = 0
 
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
+		TemporaryScaledDividend: int = 0
+		TemporaryMultipliedScaledDividend: int = 0
+		SubtractionResult: int = 0
 		SelfIsLarger: bool = True
 
-		if Other.Exponent - self.Exponent > 0:
+		#Figure out which variable has a higher or lower exponent
+		if Other.Exponent - self.Exponent >= 0:
 			LargerExponent = Other.Exponent
 			SmallerExponent = self.Exponent
 
@@ -203,14 +206,11 @@ class BigNumFloat():
 			LargerExponentMantissa = self.Mantissa
 			SmallerExponentMantissa = Other.Mantissa
 		
-		logging.debug("LargerExponent: %s" % (LargerExponent))
-		logging.debug("SmallerExponent: %s" % (SmallerExponent))
-		
+		#Make sure the mantissas are aligned according to their exponents
 		DeltaExponent: int = LargerExponent - SmallerExponent
-		logging.debug("DeltaExponent = %s" % (DeltaExponent))
-
 		LargerExponentMantissa = LargerExponentMantissa * 10**(DeltaExponent)
 
+		#Make sure the dividend and divisor are the right ones after alignment from exponents
 		DivisorMantissa: int = 0
 		DividendMantissa: int = 0
 
@@ -221,8 +221,39 @@ class BigNumFloat():
 			DivisorMantissa = SmallerExponentMantissa
 			DividendMantissa = LargerExponentMantissa
 		
-		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits)
-		logging.debug(DividendMantissa) #Just to stop the errors
+		#Save lengths for looping
+		DivisorLength: int = len(str(DivisorMantissa))
+		DividendLength: int = len(str(DividendMantissa))
+
+		#Compensate for DivisionPrecisionInDigits
+		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
+
+		#Do the actual long ass division
+		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)-1
+		for i in range(DivisionIterationLength, 0, -1):
+			#Practically bute forcing the long ass division for easier implementation
+			TemporaryScaledDividend = DividendMantissa * 10**i
+
+			#Iterate through the different digits it could be computing
+			#Since I basically brute force this, I 'need' to check for multiplying the dividend by 0 to not omit 0's in the result
+			for j in range(9, -1, -1):
+				TemporaryMultipliedScaledDividend = j * TemporaryScaledDividend
+
+				#Calculate final subtraction with everything compensated for and aligned properly
+				SubtractionResult = DivisorMantissa - TemporaryMultipliedScaledDividend
+				if SubtractionResult > 0:
+					#Write the result to OutputMantissaAsString
+					OutputMantissaAsString += str(j)
+
+					#Make sure the DivisorMantissa is kept up to date
+					DivisorMantissa = DivisorMantissa-TemporaryMultipliedScaledDividend
+					break
+		
+		#Final conversion from string to int
+		OutputMantissa = int(OutputMantissaAsString)
+
+		#Make sure the exponent is handled properly
+		OutputExponent = self.Exponent + Other.Exponent - self.DivisionPrecisionInDigits
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
@@ -289,5 +320,13 @@ class BigNumFloat():
 		
 		#Lazily convert to string
 		OutputString += str(int(self.Mantissa * 10**(self.Exponent)))
+
+		#Show at least Some digits after the decimal point
+		FloatingPointValueOfNumber: float = self.Mantissa*(10**self.Exponent)
+		IntegerPartOfNumber: int = math.floor(FloatingPointValueOfNumber)
+		if IntegerPartOfNumber != FloatingPointValueOfNumber:
+			OutputString += "."
+			ExtraDigits: int = int((FloatingPointValueOfNumber-IntegerPartOfNumber)*(10**(self.DivisionPrecisionInDigits)))
+			OutputString += str(ExtraDigits)
 
 		return OutputString
