@@ -37,3 +37,18 @@ class BigNumComplex():
 	
 	def __str__(self: Self) -> str:
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
+
+def __main__():
+	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+
+	XResolution: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1024)
+	YResolution: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1024)
+
+	XStart: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(-1)
+	XEnd: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
+
+	YStart: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(-1)
+	YEnd: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
+
+	XDX: "BigNumFloat.BigNumFloat" = (XStart - XEnd)/XResolution
+	YDY: "BigNumFloat.BigNumFloat" = (YStart - YEnd)/YResolution
