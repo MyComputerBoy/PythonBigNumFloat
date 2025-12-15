@@ -65,8 +65,10 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 	
 	return IterationDepth
 
-def __main__():
+def __main__(DoDebug: bool = True):
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+
+	IterationDepth: int = 100
 
 	XResolution: int = 1024
 	YResolution: int = 1024
@@ -86,3 +88,41 @@ def __main__():
 
 	XDXBN: "BigNumFloat.BigNumFloat" = (XStartBN - XEndBN)/XResolutionBN
 	YDYBN: "BigNumFloat.BigNumFloat" = (YStartBN - YEndBN)/YResolutionBN
+
+	XScalar: "BigNumFloat.BigNumFloat"
+	YScalar: "BigNumFloat.BigNumFloat"
+	XPosition: "BigNumFloat.BigNumFloat"
+	YPosition: "BigNumFloat.BigNumFloat"
+	TemporaryComplexNumber: "BigNumComplex"
+
+	if DoDebug:
+		input()
+
+	for i in range(XResolution):
+		TemporaryOutputString: str = ""
+		for j in range(YResolution):
+			XScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(i)
+			YScalar = BNFHandler.ConvertIEEEFloatToBigNumFloat(j)
+
+			XPosition = XStartBN + (XDXBN * XScalar)
+			YPosition = YStartBN + (YDYBN * YScalar)
+
+			TemporaryComplexNumber = BigNumComplex(XPosition, YPosition)
+			TemporaryDepthInMandelbrot: int = DepthInMandelbrotSet(TemporaryComplexNumber, IterationDepth)
+			if TemporaryDepthInMandelbrot == IterationDepth:
+				TemporaryOutputString += "■"
+			else:
+				TemporaryOutputString += " "
+		print(TemporaryOutputString)
+	
+	input()
+
+# __main__()
+
+a: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1)
+b: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1000)
+
+c: "BigNumFloat.BigNumFloat" = a/b
+print(c)
+
+input()

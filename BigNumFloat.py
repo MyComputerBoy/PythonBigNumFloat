@@ -18,7 +18,7 @@ from typing import Self
 import math
 
 #Handle logging
-LOGLEVEL = logging.WARNING
+LOGLEVEL = logging.DEBUG
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
@@ -51,6 +51,8 @@ class BigNumFloat():
 		self.DivisionPrecisionInDigits = DivisionPrecisionInDigits
 	
 	def __raw_add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		logging.debug("BigNumFloat.BigNumFloat.__raw__add__(%s, %s)" % (str(self), str(Other)))
+
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
@@ -91,10 +93,16 @@ class BigNumFloat():
 		
 		if (not self.Sign) and (not Other.Sign):
 			OutputSign = False
+		elif (self.Sign) and (not Other.Sign):
+			OutputSign = False
 
-		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		logging.debug("RawAdd result: %s" % (Result))
+		return Result
 	
 	def __raw_sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		logging.debug("BigNumFloat.BigNumFloat.__raw__sub__(%s, %s)" % (str(self), str(Other)))
+
 		#Create initial output variables to work on
 		OutputSign: bool = self.Sign
 		OutputExponent: int = 0
@@ -134,8 +142,10 @@ class BigNumFloat():
 			OutputSign = False
 			OutputMantissa *= -1
 
-		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
-
+		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		logging.debug("RawSub result: %s" % (Result))
+		return Result
+	
 	def __add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
 		if self.Sign:
 			if Other.Sign:
@@ -156,11 +166,13 @@ class BigNumFloat():
 				return self.__raw_add__(Other)
 		else:
 			if Other.Sign:
-				return Other.__raw_sub__(self)
+				return Other.__raw_add__(self)
 			else:
 				return self.__raw_sub__(Other)
 
 	def __mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		logging.debug("BigNumFloat.BigNumFloat.__raw__mul__(%s, %s)" % (str(self), str(Other)))
+
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
@@ -198,9 +210,19 @@ class BigNumFloat():
 		#Make sure the exponent is handled properly
 		OutputExponent = SmallerExponent - DeltaExponent
 
-		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		logging.debug("RawMuk result: %s" % (Result))
+		return Result
 
 	def __truediv__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
+		logging.debug("BigNumFloat.BigNumFloat.__raw__div__(%s, %s)" % (str(self), str(Other)))
+
+		if Other.IsZero():
+			raise ZeroDivisionError
+		
+		if self.IsZero():
+			return self
+
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
@@ -254,6 +276,9 @@ class BigNumFloat():
 		#Compensate for DivisionPrecisionInDigits
 		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
 
+		logging.debug("Dividend: %s" % (DividendMantissa))
+		logging.debug("Divisor: %s" % (DividendMantissa))
+		
 		#Do the actual long ass division
 		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)-1
 		for i in range(DivisionIterationLength, 0, -1):
@@ -267,24 +292,35 @@ class BigNumFloat():
 
 				#Calculate final subtraction with everything compensated for and aligned properly
 				SubtractionResult = DivisorMantissa - TemporaryMultipliedScaledDividend
-				if SubtractionResult > 0:
+				
+				logging.debug("Divisor: %s, Dividend: %s, Result: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult))
+
+				if SubtractionResult >= 0:
+					logging.debug("Subtraction positive, index: %s" % (j))
+					logging.debug("TemporaryMultipliedScaledDividend: %s" % (TemporaryMultipliedScaledDividend))
 					#Write the result to OutputMantissaAsString
 					OutputMantissaAsString += str(j)
+					if j == 0:
+						continue
 
 					#Make sure the DivisorMantissa is kept up to date
 					DivisorMantissa = DivisorMantissa-TemporaryMultipliedScaledDividend
 					break
 		
 		#Final conversion from string to int
+		logging.debug("Raw Mantissa Output: %s" % (OutputMantissaAsString))
 		OutputMantissa = int(OutputMantissaAsString)
 
 		#Make sure the exponent is handled properly
-		OutputExponent = self.Exponent + Other.Exponent - self.DivisionPrecisionInDigits
+		OutputExponent = -self.Exponent - Other.Exponent - self.DivisionPrecisionInDigits - DividendLength
+		logging.debug("Raw Exponent Output: %s" % (OutputExponent))
 
 		#Make sure signs are handled properly
 		OutputSign = bool(int((int(self.Sign)+int(Other.Sign))/2))
 
-		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		logging.debug("RawDiv result: %s" % (Result))
+		return Result
 
 	def ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat":
 		#Create initial output variables to work on
@@ -308,13 +344,16 @@ class BigNumFloat():
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
+	def IsZero(self: Self) -> bool:
+		return self.Mantissa == 0
+
 	def __repr__(self) -> str:
 		return "BigNumFloat.BigNumFloat(Sign=%s, Exponent=%s, Mantissa=%s)" % (self.Sign, int(self.Exponent), int(self.Mantissa))
 	
 	def __str__(self) -> str:
 		#Handle 0 or sign properly
 		OutputString: str = ""
-		if self.Mantissa != 0:
+		if not self.IsZero():
 			if self.Sign:
 				OutputString += "+"
 			else:
@@ -331,7 +370,8 @@ class BigNumFloat():
 		IntegerPartOfNumber: int = math.floor(FloatingPointValueOfNumber)
 		if IntegerPartOfNumber != FloatingPointValueOfNumber:
 			OutputString += "."
-			ExtraDigits: int = int((FloatingPointValueOfNumber-IntegerPartOfNumber)*(10**(self.DivisionPrecisionInDigits)))
-			OutputString += str(ExtraDigits)
+			FloatingPointDigits: str = str(self.Mantissa)
+			NumberOfZeros: int = -(self.Exponent + len(FloatingPointDigits))
+			OutputString += NumberOfZeros * "0" + str(FloatingPointDigits)
 
 		return OutputString
