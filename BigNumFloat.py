@@ -18,7 +18,7 @@ from typing import Self
 import math
 
 #Handle logging
-LOGLEVEL = logging.DEBUG
+LOGLEVEL = logging.WARNING
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
@@ -198,7 +198,7 @@ class BigNumFloat():
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
-	def __div__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
+	def __truediv__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
