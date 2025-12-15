@@ -7,8 +7,8 @@ BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user c
 
 	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
 	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
-	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
-	__raw_div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
+	__mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
+	__div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 """
 
@@ -29,8 +29,8 @@ class BigNumFloat():
 
 	__add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to add BigNumFloats
 	__sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to sub BigNumFloats
-	__raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
-	__raw_div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
+	__mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to mul BigNumFloats
+	__div__(self: Self, Other: "BigNumFloat") -> "BigNumFloat" -> Main function to div BigNumFloats
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
 
@@ -134,7 +134,31 @@ class BigNumFloat():
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
-	def __raw_mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+	def __add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		if self.Sign:
+			if Other.Sign:
+				return self.__raw_add__(Other)
+			else:
+				return self.__raw_sub__(Other)
+		else:
+			if Other.Sign:
+				return Other.__raw_sub__(self)
+			else:
+				return self.__raw_add__(Other)
+	
+	def __sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		if self.Sign:
+			if Other.Sign:
+				return self.__raw_sub__(Other)
+			else:
+				return self.__raw_add__(Other)
+		else:
+			if Other.Sign:
+				return Other.__raw_sub__(self)
+			else:
+				return self.__raw_sub__(Other)
+
+	def __mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
@@ -174,7 +198,7 @@ class BigNumFloat():
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
-	def __raw_div__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
+	def __div__(self: Self, Other: "BigNumFloat", ) -> "BigNumFloat":
 		#Create initial output variables to work on
 		OutputSign: bool = True
 		OutputExponent: int = 0
@@ -255,31 +279,10 @@ class BigNumFloat():
 		#Make sure the exponent is handled properly
 		OutputExponent = self.Exponent + Other.Exponent - self.DivisionPrecisionInDigits
 
-		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+		#Make sure signs are handled properly
+		OutputSign = bool(int((int(self.Sign)+int(Other.Sign))/2))
 
-	def __add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
-		if self.Sign:
-			if Other.Sign:
-				return self.__raw_add__(Other)
-			else:
-				return self.__raw_sub__(Other)
-		else:
-			if Other.Sign:
-				return Other.__raw_sub__(self)
-			else:
-				return self.__raw_add__(Other)
-	
-	def __sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
-		if self.Sign:
-			if Other.Sign:
-				return self.__raw_sub__(Other)
-			else:
-				return self.__raw_add__(Other)
-		else:
-			if Other.Sign:
-				return Other.__raw_sub__(self)
-			else:
-				return self.__raw_sub__(Other)
+		return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 
 	def ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat":
 		#Create initial output variables to work on
