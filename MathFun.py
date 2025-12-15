@@ -128,8 +128,8 @@ def __main__(DoDebug: bool = False):
 	input()
 
 def __test__():
-	a: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -9, 12345600000)
-	b: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -9, 987654000000)
+	a: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -4, 123456)
+	b: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -4, 9876540)
 	c: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(355)
 	d: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(113)
 

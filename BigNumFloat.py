@@ -23,7 +23,7 @@ LOGLEVEL = logging.DEBUG
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 50
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -273,10 +273,9 @@ class BigNumFloat():
 		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
 		
 		#Do the actual long ass division
-		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits+1)
+		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)
 		for i in range(DivisionIterationLength, -1, -1):
 			#Practically bute forcing the long ass division for easier implementation
-			logging.debug("     Divisor: %s" % (DivisorMantissa))
 			TemporaryScaledDividend = DividendMantissa * 10**i
 
 			#Iterate through the different digits it could be computing
@@ -289,9 +288,10 @@ class BigNumFloat():
 
 				#Calculate final subtraction with everything compensated for and aligned properly
 				SubtractionResult = int(int(DivisorMantissa) - int(TemporaryMultipliedScaledDividend))
+				logging.debug("Divisor: %s, dividend: %s, result: %s, index: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult, j))
 
 				if SubtractionResult >= 0:
-					logging.debug("HIT! Dividend: %s" % (TemporaryMultipliedScaledDividend))
+					print("\n")
 					#Write the result to OutputMantissaAsString
 					OutputMantissaAsString += str(j)
 
