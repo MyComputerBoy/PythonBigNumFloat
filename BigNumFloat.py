@@ -23,7 +23,7 @@ LOGLEVEL = logging.WARNING
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 50
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -178,6 +178,9 @@ class BigNumFloat():
 		LargerExponent: int = 0
 		SmallerExponent: int = 0
 
+		if self.IsZero() or Other.IsZero():
+			return self.ConvertIEEEFloatToBigNumFloat(0)
+
 		#Figure out which variable has a higher or lower exponent
 		if Other.Exponent - self.Exponent > 0:
 			LargerExponent = Other.Exponent
@@ -200,10 +203,10 @@ class BigNumFloat():
 		OutputMantissa = int(LargerExponentMantissa * SmallerExponentMantissa)
 
 		#Make sure signs are handled properly
-		OutputSign = bool(int((int(self.Sign)+int(Other.Sign))/2))
+		OutputSign = not (self.Sign ^ Other.Sign)
 
 		#Make sure the exponent is handled properly
-		OutputExponent = SmallerExponent - DeltaExponent
+		OutputExponent = SmallerExponent + LargerExponent + DeltaExponent
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 		return Result
@@ -270,8 +273,8 @@ class BigNumFloat():
 		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
 		
 		#Do the actual long ass division
-		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)-1
-		for i in range(DivisionIterationLength, 0, -1):
+		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)
+		for i in range(DivisionIterationLength, -1, -1):
 			#Practically bute forcing the long ass division for easier implementation
 			TemporaryScaledDividend = DividendMantissa * 10**i
 
@@ -286,21 +289,19 @@ class BigNumFloat():
 				if SubtractionResult >= 0:
 					#Write the result to OutputMantissaAsString
 					OutputMantissaAsString += str(j)
-					if j == 0:
-						continue
 
 					#Make sure the DivisorMantissa is kept up to date
-					DivisorMantissa = DivisorMantissa-TemporaryMultipliedScaledDividend
+					DivisorMantissa = SubtractionResult
 					break
 		
 		#Final conversion from string to int
 		OutputMantissa = int(OutputMantissaAsString)
 
 		#Make sure the exponent is handled properly
-		OutputExponent = self.Exponent + Other.Exponent - self.DivisionPrecisionInDigits - DividendLength + 1
+		OutputExponent = self.Exponent - Other.Exponent - self.DivisionPrecisionInDigits - DividendLength
 
 		#Make sure signs are handled properly
-		OutputSign = bool(int((int(self.Sign)+int(Other.Sign))/2))
+		OutputSign = not (self.Sign ^ Other.Sign)
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
 		return Result
@@ -312,15 +313,20 @@ class BigNumFloat():
 		OutputMantissa: int = 0
 		TemporaryMantissa: float = InputFloat
 
+		if InputFloat == 0:
+			OutputSign = True
+			OutputExponent = 0
+			OutputMantissa = 0
+			return BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
+
 		#Handle the sign first
 		if InputFloat < 0:
 			OutputSign = False
 			TemporaryMantissa *= -1
 
 		#Handle digits properly
-		if math.floor(InputFloat)-InputFloat != 0:
-			OutputExponent = -self.DivisionPrecisionInDigits
-			TemporaryMantissa = InputFloat*(10**self.DivisionPrecisionInDigits)
+		OutputExponent = -self.DivisionPrecisionInDigits
+		TemporaryMantissa = InputFloat*(10**self.DivisionPrecisionInDigits)
 		
 		#Make sure mantissa is an int
 		OutputMantissa = int(TemporaryMantissa)
@@ -361,10 +367,11 @@ class BigNumFloat():
 			OutputString += "0" * LeadinZeros
 		else:
 			#Apparently if there are no leading zeros I need to pop the first digit?
-			TemporaryStringMantissa = TemporaryStringMantissa[1:]
+			# TemporaryStringMantissa = TemporaryStringMantissa[1:]
+			pass
 		
 		logging.debug("TemporaryStringMantissa: %s, Exponent: %s, LeadingZeros: %s" % (TemporaryStringMantissa, self.Exponent, LeadinZeros))
-		TemporaryMantissa: str = TemporaryStringMantissa[:-self.Exponent]
+		TemporaryMantissa: str = TemporaryStringMantissa[self.Exponent:(-self.Exponent+1)]
 		logging.debug("TemporaryMantissa: %s" % (TemporaryMantissa))
 		OutputString += TemporaryMantissa
 
