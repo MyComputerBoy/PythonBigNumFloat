@@ -22,7 +22,7 @@ LOGLEVEL = logging.WARNING
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 20
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -237,7 +237,7 @@ class BigNumFloat():
 		#Clamp digits precision to self.DivisionPrecisionInDigits
 		if OutputExponent < -self.DivisionPrecisionInDigits:
 			while OutputExponent < -self.DivisionPrecisionInDigits:
-				OutputMantissa = int(OutputMantissa/10)
+				OutputMantissa = OutputMantissa >> 1
 				OutputExponent += 1
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
@@ -305,8 +305,8 @@ class BigNumFloat():
 			DividendMantissa = LargerExponentMantissa
 		
 		#Save lengths for looping
-		DivisorLength: int = len(str(DivisorMantissa))
-		DividendLength: int = len(str(DividendMantissa))
+		DivisorLength: int = self.GetIntegerLengthBruteForce(DivisorMantissa)
+		DividendLength: int = self.GetIntegerLengthBruteForce(DividendMantissa)
 
 		#Compensate for DivisionPrecisionInDigits
 		DivisorMantissa *= 10**(self.DivisionPrecisionInDigits+DividendLength)
@@ -339,7 +339,7 @@ class BigNumFloat():
 					break
 		
 		#Final conversion from string to int
-		OutputMantissa = abs(int(OutputMantissaAsString))
+		OutputMantissa = self.StringToIntBruteForce(OutputMantissaAsString)
 
 		#Make sure the exponent is handled properly
 		OutputExponent = self.Exponent - Other.Exponent - self.DivisionPrecisionInDigits - DividendLength
@@ -350,7 +350,7 @@ class BigNumFloat():
 		#Clamp digits precision to self.DivisionPrecisionInDigits
 		if OutputExponent < -self.DivisionPrecisionInDigits:
 			while OutputExponent < -self.DivisionPrecisionInDigits:
-				OutputMantissa = int(OutputMantissa/10)
+				OutputMantissa = OutputMantissa >> 1
 				OutputExponent += 1
 		
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
@@ -386,6 +386,25 @@ class BigNumFloat():
 
 	def IsZero(self: Self) -> bool:
 		return self.Mantissa == 0
+
+	def GetIntegerLengthBruteForce(self: Self, Input: int) -> int:
+		Output: int = 0
+		
+		while Input != 0:
+			Input = Input >> 1
+			Output += 1
+		
+		return Output
+
+	def StringToIntBruteForce(self: Self, Input: str) -> int:
+		Output: int = 0
+
+		while Input != "":
+			TemporaryInt: int = int(Input[-1])
+			Input = Input[:-1]
+			Output = 10*Output + TemporaryInt
+
+		return Output
 
 	def __repr__(self) -> str:
 		return "BigNumFloat.BigNumFloat(Sign=%s, Exponent=%s, Mantissa=%s)" % (self.Sign, int(self.Exponent), int(self.Mantissa))

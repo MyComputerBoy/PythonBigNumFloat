@@ -26,10 +26,75 @@ import time
 import math
 
 #Handle logging
-LOGLEVEL = logging.WARNING
+LOGLEVEL = logging.DEBUG
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
+
+class RealMathClass():
+	def __init__(self: Self) -> None:
+		self.BNFFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+
+	def Factulty(self: Self, Input: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
+		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+		Scalar: "BigNumFloat.BigNumFloat"
+
+		# try:
+		FacultyInIEEEInt: int = math.floor(float(Input.__str__()))
+		# except ValueError:
+		# 	raise ValueError("Error: Input must be of type BigNumFloat.BigNumFloat.")
+		
+		for i in range(1, FacultyInIEEEInt+1):
+			Scalar = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(i)
+			Output *= Scalar
+		
+		return Output
+	
+	def Knr(self: Self, n: "BigNumFloat.BigNumFloat", r:"BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
+		OutputDivisor: "BigNumFloat.BigNumFloat" = self.Factulty(n)
+		OutputDividend: "BigNumFloat.BigNumFloat" = self.Factulty(n-r)
+
+		return OutputDivisor/OutputDividend
+
+	def IntegerExponentiation(self: Self, Base: "BigNumFloat.BigNumFloat", Exponent: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
+		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+
+		try:
+			ExponentInIEEEInt: int = math.floor(float(Exponent.__str__()))
+		except ValueError:
+			raise ValueError("Error: Exponent must be of type BigNumFloat.BigNumFloat.")
+		
+		for _ in range(ExponentInIEEEInt):
+			Output *= Base
+		
+		return Output
+	
+	def Exp(self: Self, Exponent: "BigNumFloat.BigNumFloat", IterationDepth: int = 50) -> "BigNumFloat.BigNumFloat":
+		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(0)
+
+		for i in range(IterationDepth):
+			IterationIndexInBigNum: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(i)
+			Output += self.IntegerExponentiation(Exponent, IterationIndexInBigNum)/self.Factulty(IterationIndexInBigNum)
+		
+		return Output
+	
+	def SquareRoot(self: Self, Input: "BigNumFloat.BigNumFloat", IterationDepth: int = 3) -> "BigNumFloat.BigNumFloat":
+		logging.debug("MathFun.RealMathClass.SquareRoot()")
+		TWO: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(2)
+		OutputEstimate: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+
+		Divisor: "BigNumFloat.BigNumFloat"
+		Dividend: "BigNumFloat.BigNumFloat"
+
+		logging.debug("Starting Main loop.")
+		for i in range(IterationDepth):
+			logging.debug("Iteration: %s/%s" % (i, IterationDepth))
+			Divisor = (OutputEstimate*OutputEstimate)-Input
+			Dividend = TWO * OutputEstimate
+
+			OutputEstimate -= Divisor/Dividend
+		
+		return OutputEstimate
 
 class BigNumComplex():
 	def __init__(self: Self, Real: "BigNumFloat.BigNumFloat", Imaginary: "BigNumFloat.BigNumFloat") -> None:
@@ -94,7 +159,7 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 
 	return IterationDepth
 
-def __main__():
+def MainMandelbrotRendering():
 	#Handle basic variables
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
@@ -169,6 +234,46 @@ def __main__():
 	dTime = math.floor(EndTime-StartTime)
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
-__main__()
+def RamanujanSatoSeries(IterationDepth: int = 10):
+	HerePrecision: int = 7
+	logging.debug("MathFun.__main__():")
+	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+	BNFHandler.DivisionPrecisionInDigits = HerePrecision
+	RealMathHandler: "RealMathClass" = RealMathClass()
+	RealMathHandler.BNFFHandler.DivisionPrecisionInDigits = HerePrecision
+	
+	ONE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
+	TWO: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(2)
+	FOUR: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(4)
+	NINETYNINE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(99)
+	THREENINETYSIX: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(396)
+	ELEVENOTHREE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1103)
+	LARGE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(26390)
+
+	logging.debug("Static variables declared. Starting dynamic variables.")
+	Sum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(0)
+	SCALAR: "BigNumFloat.BigNumFloat" = TWO*RealMathHandler.SquareRoot(TWO)/(NINETYNINE*NINETYNINE)
+
+	PartOne: "BigNumFloat.BigNumFloat"
+	PartTwo: "BigNumFloat.BigNumFloat"
+
+	Output: "BigNumFloat.BigNumFloat"
+
+	logging.debug("Starting Main Ramanujan Sato loop.")
+	for i in range(IterationDepth):
+		print("Iteration: %s/%s" % (i, IterationDepth))
+		IterationIndexInBigNum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(i)
+		PartOne = RealMathHandler.Factulty(FOUR*IterationIndexInBigNum)/RealMathHandler.IntegerExponentiation(RealMathHandler.Factulty(IterationIndexInBigNum), FOUR)
+		print("PartOne.")
+		PartTwo = (LARGE * IterationIndexInBigNum + ELEVENOTHREE)/RealMathHandler.IntegerExponentiation(THREENINETYSIX, FOUR*IterationIndexInBigNum)
+		print("PartTwo")
+
+		Sum += PartOne * PartTwo
+	
+	Output = ONE / (SCALAR*Sum)
+
+	print(Output)
+
+RamanujanSatoSeries(2)
 
 input("End of program.")
