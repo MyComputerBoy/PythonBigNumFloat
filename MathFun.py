@@ -1,4 +1,20 @@
 """MathFun.py -> My math library having fun with my BigNumFloat lobrary
+Main user classes:
+
+BigNumComplex(self: Self, Real: "BigNumFloat.BigNumFloat", Imaginary: "BigNumFloat.BigNumFloat") -> My BigNum implementation of complex numbers
+Main user functions:
+	def __add__(self: Self, Other: "BigNumComplex") -> "BigNumComplex" -> adds complex numbers
+	def __sub__(self: Self, Other: "BigNumComplex") -> "BigNumComplex" -> subs
+	def __mul__(self: Self, Other: "BigNumComplex") -> "BigNumComplex" -> muls
+	def __truediv__(self: Self, Other: "BigNumComplex") ->"BigNumComplex" -> divs
+	def GetMagnitudeSquared(self: Self) -> "BigNumFloat.BigNumFloat" -> Gets the magnitude without square root, so magnitude squared
+
+Main user functions:
+__main__() -> Function to run Mandelbrot Set
+NOTE!
+I'd highly suggest going into the BigNumFloat.py library to change the DIVISIONPRECISIONINDIGITSGLOBAL per usage, as it can unnescessarily slow down processing
+It can also be needed to increase the precision depending on your usage
+But you can set starting coordinates and ending coordinates as well as resolution and iteration depths in the start of the function
 """
 
 import BigNumFloat
@@ -82,14 +98,16 @@ def __main__():
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
+	#Resolution stuff
 	IterationDepth: int = 1024
-
-	XResolution: int = 1080
+	XResolution: int = 1920
 	YResolution: int = 1080
-	XStart: float = -2
-	YStart: float = -2
-	XEnd: float = 2
-	YEnd: float = 2
+
+	#Coordinate stuff
+	XStart: float = -1.150341291421
+	YStart: float = 0.275699601513
+	XEnd: float = -1.150338702743
+	YEnd: float = 0.275701095725
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
