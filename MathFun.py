@@ -15,6 +15,7 @@ NOTE!
 I'd highly suggest going into the BigNumFloat.py library to change the DIVISIONPRECISIONINDIGITSGLOBAL per usage, as it can unnescessarily slow down processing
 It can also be needed to increase the precision depending on your usage
 But you can set starting coordinates and ending coordinates as well as resolution and iteration depths in the start of the function
+You should probably also change the ImagePath to a path on your own system to be able to save any renders xD
 """
 
 import BigNumFloat
