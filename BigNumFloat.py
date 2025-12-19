@@ -237,7 +237,7 @@ class BigNumFloat():
 		#Clamp digits precision to self.DivisionPrecisionInDigits
 		if OutputExponent < -self.DivisionPrecisionInDigits:
 			while OutputExponent < -self.DivisionPrecisionInDigits:
-				OutputMantissa = OutputMantissa >> 1
+				OutputMantissa = OutputMantissa // 10
 				OutputExponent += 1
 
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)
@@ -350,7 +350,7 @@ class BigNumFloat():
 		#Clamp digits precision to self.DivisionPrecisionInDigits
 		if OutputExponent < -self.DivisionPrecisionInDigits:
 			while OutputExponent < -self.DivisionPrecisionInDigits:
-				OutputMantissa = OutputMantissa >> 1
+				OutputMantissa = OutputMantissa // 10
 				OutputExponent += 1
 		
 		Result: "BigNumFloat" = BigNumFloat(OutputSign, OutputExponent, OutputMantissa)

@@ -273,7 +273,3 @@ def RamanujanSatoSeries(IterationDepth: int = 10):
 	Output = ONE / (SCALAR*Sum)
 
 	print(Output)
-
-RamanujanSatoSeries(2)
-
-input("End of program.")
