@@ -32,21 +32,26 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
 class RealMathClass():
-	def __init__(self: Self) -> None:
+	def __init__(self: Self, DoDebugging: bool = False) -> None:
 		self.BNFFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
-	def Factulty(self: Self, Input: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
-		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
-		Scalar: "BigNumFloat.BigNumFloat"
+		self.ONE: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
 
-		# try:
-		FacultyInIEEEInt: int = math.floor(float(Input.__str__()))
-		# except ValueError:
-		# 	raise ValueError("Error: Input must be of type BigNumFloat.BigNumFloat.")
+		self.DODEBUGGING: bool = DoDebugging
+
+	def Factulty(self: Self, Input: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("MathFun.Faculty(%s):" % (Input))
+		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+		# Scalar: "BigNumFloat.BigNumFloat"
+
+		# # try:
+		# FacultyInIEEEInt: int = math.floor(float(Input.__str__()))
+		# # except ValueError:
+		# # 	raise ValueError("Error: Input must be of type BigNumFloat.BigNumFloat.")
 		
-		for i in range(1, FacultyInIEEEInt+1):
-			Scalar = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(i)
-			Output *= Scalar
+		for i in (Input + self.ONE):
+			Output *= i
 		
 		return Output
 	
@@ -59,12 +64,7 @@ class RealMathClass():
 	def IntegerExponentiation(self: Self, Base: "BigNumFloat.BigNumFloat", Exponent: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
 		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
 
-		try:
-			ExponentInIEEEInt: int = math.floor(float(Exponent.__str__()))
-		except ValueError:
-			raise ValueError("Error: Exponent must be of type BigNumFloat.BigNumFloat.")
-		
-		for _ in range(ExponentInIEEEInt):
+		for _ in (Exponent + self.ONE):
 			Output *= Base
 		
 		return Output
@@ -78,18 +78,20 @@ class RealMathClass():
 		
 		return Output
 	
-	def SquareRoot(self: Self, Input: "BigNumFloat.BigNumFloat", IterationDepth: int = 4) -> "BigNumFloat.BigNumFloat":
-		logging.debug("MathFun.RealMathClass.SquareRoot()")
+	def SquareRoot(self: Self, Input: "BigNumFloat.BigNumFloat", IterationDepth: int = 10) -> "BigNumFloat.BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("MathFun.RealMathClass.SquareRoot(%s)" % (Input.__repr__()))
 		TWO: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(2)
 		OutputEstimate: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
 
 		Divisor: "BigNumFloat.BigNumFloat"
 		Dividend: "BigNumFloat.BigNumFloat"
+		EstimateSquared: "BigNumFloat.BigNumFloat"
 
-		logging.debug("Starting Main loop.")
 		for i in range(IterationDepth):
-			logging.debug("Iteration: %s/%s" % (i, IterationDepth))
-			Divisor = (OutputEstimate*OutputEstimate)-Input
+
+			EstimateSquared = OutputEstimate*OutputEstimate
+			Divisor = EstimateSquared-Input
 			Dividend = TWO * OutputEstimate
 
 			OutputEstimate -= Divisor/Dividend
@@ -237,13 +239,10 @@ def MainMandelbrotRendering():
 	dTime = math.floor(EndTime-StartTime)
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
-def RamanujanSatoSeries(IterationDepth: int = 2):
-	HerePrecision: int = 7
+def RamanujanSatoSeries(IterationDepth: int = 10):
 	logging.debug("MathFun.__main__():")
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
-	BNFHandler.DivisionPrecisionInDigits = HerePrecision
 	RealMathHandler: "RealMathClass" = RealMathClass()
-	RealMathHandler.BNFFHandler.DivisionPrecisionInDigits = HerePrecision
 	
 	ONE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1)
 	TWO: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(2)
@@ -257,34 +256,53 @@ def RamanujanSatoSeries(IterationDepth: int = 2):
 	Sum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(0)
 	SCALAR: "BigNumFloat.BigNumFloat" = TWO*RealMathHandler.SquareRoot(TWO)/(NINETYNINE*NINETYNINE)
 
+	PartOneFacultyDivisor: "BigNumFloat.BigNumFloat"
+	PartOneExponentDividend: "BigNumFloat.BigNumFloat"
+	PartOneFacultyDividend: "BigNumFloat.BigNumFloat"
+
+	PartTwoDivisor: "BigNumFloat.BigNumFloat"
+	PartTwoExponentDividend: "BigNumFloat.BigNumFloat"
+
 	PartOne: "BigNumFloat.BigNumFloat"
 	PartTwo: "BigNumFloat.BigNumFloat"
 
 	Output: "BigNumFloat.BigNumFloat"
 
+	KnownPi: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -1000, 31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989)
+
 	logging.debug("Starting Main Ramanujan Sato loop.")
 	for i in range(IterationDepth):
-		print("Iteration: %s/%s" % (i, IterationDepth))
+		logging.debug("Iteration: %s/%s" % (i, IterationDepth))
 		IterationIndexInBigNum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(i)
+
+		PartOneFacultyDivisor = RealMathHandler.Factulty(FOUR*IterationIndexInBigNum)
+		PartOneFacultyDividend = RealMathHandler.Factulty(IterationIndexInBigNum)
+		PartOneExponentDividend = RealMathHandler.IntegerExponentiation(PartOneFacultyDividend, FOUR)
+
+		PartTwoDivisor = LARGE * IterationIndexInBigNum + ELEVENOTHREE
+		PartTwoExponentDividend = RealMathHandler.IntegerExponentiation(THREENINETYSIX, FOUR*IterationIndexInBigNum)
         
-		PartOne = RealMathHandler.Factulty(FOUR*IterationIndexInBigNum)/RealMathHandler.IntegerExponentiation(RealMathHandler.Factulty(IterationIndexInBigNum), FOUR)
-		print("PartOne.")
-		PartTwo = (LARGE * IterationIndexInBigNum + ELEVENOTHREE)/RealMathHandler.IntegerExponentiation(THREENINETYSIX, FOUR*IterationIndexInBigNum)
-		print("PartTwo")
+		PartOne = PartOneFacultyDivisor/PartOneExponentDividend
+		PartTwo = PartTwoDivisor/PartTwoExponentDividend
 
 		Sum += PartOne * PartTwo
 	
-	Output = Sum * (ONE / SCALAR)
+	Output = ONE / (Sum * SCALAR)
+	DeltaOutput: "BigNumFloat.BigNumFloat" = KnownPi - Output
 
-	print(Output)
+	print("\n\nOutput: %s" % (Output))
+	print("Delta known pi: %s" % (DeltaOutput))
 
-# RamanujanSatoSeries()
+RamanujanSatoSeries(200)
 
-def __main)__():
-	SquareRootTwo: "BigNumFloat.BigNumFloat" = RMHandlerGlobal.SquareRoot(TWO)
+# def __main__():
+# 	a: "BigNumFloat.BigNumFloat" = ONE/TWO
+# 	b: "BigNumFloat.BigNumFloat" = FOUR*FOUR
 
-	print("sqrt(2) = %s" % (SquareRootTwo.__repr__()))
+# 	Output: "BigNumFloat.BigNumFloat" = b / a
 
-__main__()
+# 	print("Output: %s" % (Output))
+
+# __main__()
 
 input("End of program.")
