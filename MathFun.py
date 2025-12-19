@@ -78,7 +78,7 @@ class RealMathClass():
 		
 		return Output
 	
-	def SquareRoot(self: Self, Input: "BigNumFloat.BigNumFloat", IterationDepth: int = 3) -> "BigNumFloat.BigNumFloat":
+	def SquareRoot(self: Self, Input: "BigNumFloat.BigNumFloat", IterationDepth: int = 4) -> "BigNumFloat.BigNumFloat":
 		logging.debug("MathFun.RealMathClass.SquareRoot()")
 		TWO: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(2)
 		OutputEstimate: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
@@ -128,7 +128,10 @@ class BigNumComplex():
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
 
 #Create BigNumFloat handler for ease of use, and define FUOR preemtively
+RMHandlerGlobal: "RealMathClass" = RealMathClass()
 BNFHandlerGlobal: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
+ONE: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1)
+TWO: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(2)
 FOUR: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(4)
 
 def SingleMandelbrotCalculation(InputComplexNumber: "BigNumComplex", OffsetComplexNumber: "BigNumComplex") -> "BigNumComplex":
@@ -234,7 +237,7 @@ def MainMandelbrotRendering():
 	dTime = math.floor(EndTime-StartTime)
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
-def RamanujanSatoSeries(IterationDepth: int = 10):
+def RamanujanSatoSeries(IterationDepth: int = 2):
 	HerePrecision: int = 7
 	logging.debug("MathFun.__main__():")
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
@@ -263,6 +266,7 @@ def RamanujanSatoSeries(IterationDepth: int = 10):
 	for i in range(IterationDepth):
 		print("Iteration: %s/%s" % (i, IterationDepth))
 		IterationIndexInBigNum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(i)
+        
 		PartOne = RealMathHandler.Factulty(FOUR*IterationIndexInBigNum)/RealMathHandler.IntegerExponentiation(RealMathHandler.Factulty(IterationIndexInBigNum), FOUR)
 		print("PartOne.")
 		PartTwo = (LARGE * IterationIndexInBigNum + ELEVENOTHREE)/RealMathHandler.IntegerExponentiation(THREENINETYSIX, FOUR*IterationIndexInBigNum)
@@ -270,6 +274,17 @@ def RamanujanSatoSeries(IterationDepth: int = 10):
 
 		Sum += PartOne * PartTwo
 	
-	Output = ONE / (SCALAR*Sum)
+	Output = Sum * (ONE / SCALAR)
 
 	print(Output)
+
+# RamanujanSatoSeries()
+
+def __main)__():
+	SquareRootTwo: "BigNumFloat.BigNumFloat" = RMHandlerGlobal.SquareRoot(TWO)
+
+	print("sqrt(2) = %s" % (SquareRootTwo.__repr__()))
+
+__main__()
+
+input("End of program.")
