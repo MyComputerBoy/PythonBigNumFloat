@@ -68,16 +68,27 @@ class RealMathClass():
 		if self.DODEBUGGING:
 			logging.debug("MathFun.RealMathClass.IntegerExponentiation(%s, %s)" % (Base, Exponent))
 		
-		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
-
-		AddedExponent: "BigNumFloat.BigNumFloat" = Exponent + ONE
-		for i in AddedExponent:
+		if Exponent.IsZero():
 			if self.DODEBUGGING:
-				logging.debug("i: %s" % (i))
-				logging.debug("Output: %s" % (Output))
-			Output *= Base
+				logging.debug("Exponent is ZERO! Return 1 automatically.")
+				OutputInteger = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+				# input("IntegerExponentiation Output: %s from %s,%s" % (OutputInteger, Base, Exponent))
+				return OutputInteger
 		
-		return Output
+		OutputInteger: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
+
+		AddedExponent: "BigNumFloat.BigNumFloat" = Exponent# - ONE
+		for _ in AddedExponent:
+			OutputInteger = OutputInteger * Base
+			# if self.DODEBUGGING:
+			# 	logging.debug("i: %s" % (i))
+			# 	logging.debug("OutputInteger: %s" % (OutputInteger))
+		
+		if self.DODEBUGGING:
+			logging.debug("IntegerExponentiation Output: %s from %s,%s" % (OutputInteger.__repr__(), Base, Exponent))
+		# input("IntegerExponentiation end.")
+
+		return OutputInteger
 	
 	def Exp(self: Self, Exponent: "BigNumFloat.BigNumFloat", IterationDepth: int = 50) -> "BigNumFloat.BigNumFloat":
 		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(0)
@@ -296,9 +307,12 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 
 		PartTwoDivisor = LARGE * IterationIndexInBigNum + ELEVENOTHREE
 		PartTwoExponentDividend = RealMathHandler.IntegerExponentiation(THREENINETYSIX, FOUR*IterationIndexInBigNum)
+		logging.debug("PartTwo: Divisor: %s, Dividend: %s" % (PartTwoDivisor, PartTwoExponentDividend))
         
 		PartOne = PartOneFacultyDivisor/PartOneExponentDividend
 		PartTwo = PartTwoDivisor/PartTwoExponentDividend
+		logging.debug("PartOne: %s, PartTwo: %s" % (PartOne, PartTwo))
+		input("Important Part!")
 		if DoDebugging:
 			logging.debug("\nPartOne:  %s, PartTwo: %s" % (PartOne, PartTwo))
 
@@ -307,14 +321,15 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	Output = ONE / (Sum * SCALAR)
 	# DeltaOutput: "BigNumFloat.BigNumFloat" = KnownPi - Output
 
-	print("\n\nOutput: %s" % (Output))
+	print("\n\nOutput: %s" % (Output.__repr__()))
 	# print("Delta known pi: %s" % (DeltaOutput))
 
 RamanujanSatoSeries(10)
 
 # def __main__():
+# 	a: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(5)
 
-# 	Output: "BigNumFloat.BigNumFloat" = RMHandlerGlobal.Factulty(FOUR*FOUR)
+# 	Output: "BigNumFloat.BigNumFloat" = RMHandlerGlobal.Factulty(a)
 
 # 	print("Output: %s" % (Output))
 

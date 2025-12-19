@@ -103,6 +103,11 @@ class BigNumFloat():
 	def __raw_sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
 		if self.DODEBUGGING:
 			logging.debug("\nBigNumFloat.__raw__sub__(%s, %s):" % (self.__repr__(), Other.__repr__()))
+		
+		if self.IsZero():
+			if self.DODEBUGGING:
+				logging.debug("Subracting from ZERO! Only inverting Other.Sign.")
+			return BigNumFloat(not Other.Sign, Other.Exponent, Other.Mantissa)
 
 		#Create initial output variables to work on
 		OutputSign: bool = self.Sign
@@ -230,6 +235,8 @@ class BigNumFloat():
 			logging.debug("Doing actual computation.")
 		#Do the actual multiplication
 		OutputMantissa = abs(int(LargerExponentMantissa * SmallerExponentMantissa))
+		if self.DODEBUGGING:
+			logging.debug("Multiplication Output: %s" % (OutputMantissa))
 
 		#Make sure signs are handled properly
 		OutputSign = not (self.Sign ^ Other.Sign)
@@ -243,6 +250,8 @@ class BigNumFloat():
 		#Clamp digits precision to self.DivisionPrecisionInDigits
 		if OutputExponent < -self.DivisionPrecisionInDigits:
 			while OutputExponent < -self.DivisionPrecisionInDigits:
+				if self.DODEBUGGING:
+					logging.debug("OutputExponent: %s" % (OutputExponent))
 				OutputMantissa = OutputMantissa // 10
 				OutputExponent += 1
 
@@ -297,12 +306,12 @@ class BigNumFloat():
 		
 		try:
 			IntegerPartLarger: int = int(str(LargerExponentMantissa)[:-(self.DivisionPrecisionInDigits)])
-			# logging.debug("IntegerPart: %s" % (IntegerPartLarger))
+			logging.debug("IntegerPart: %s" % (IntegerPartLarger))
 		except ValueError:
 			IntegerPartLarger = 0
 		try:
 			IntegerPartSmaller: int = int(str(SmallerExponentMantissa)[:(-self.DivisionPrecisionInDigits)])
-			# logging.debug("IntegerPart: %s" % (IntegerPartSmaller))
+			logging.debug("IntegerPart: %s" % (IntegerPartSmaller))
 		except ValueError:
 			IntegerPartSmaller = 0
 		
@@ -330,7 +339,7 @@ class BigNumFloat():
 		
 		#Do the actual long ass division
 		DivisionIterationLength: int = (DivisorLength+DividendLength+self.DivisionPrecisionInDigits)
-		for i in range(DivisionIterationLength, 0, -1):
+		for i in range(DivisionIterationLength, -1, -1):
 			#Practically bute forcing the long ass division for easier implementation
 			TemporaryScaledDividend = DividendMantissa * 10**i
 
@@ -365,7 +374,7 @@ class BigNumFloat():
 		#Make sure the exponent is handled properly
 		if self.DODEBUGGING:
 			logging.debug("IntegerPart: %s, IntegerPart: %s" % (IntegerPartLarger, IntegerPartSmaller))
-		OutputExponent = self.Exponent - Other.Exponent - DividendLength - self.DivisionPrecisionInDigits - (int(len(str(IntegerPartLarger)))+int(len(str(IntegerPartSmaller))) - 3)
+		OutputExponent = self.Exponent - Other.Exponent - DividendLength - self.DivisionPrecisionInDigits# - (int(len(str(IntegerPartLarger)))+int(len(str(IntegerPartSmaller))) - 3)
 
 		#Make sure signs are handled properly
 		OutputSign = not (self.Sign ^ Other.Sign)
