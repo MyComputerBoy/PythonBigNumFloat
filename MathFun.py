@@ -262,7 +262,8 @@ def MainMandelbrotRendering():
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
 def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
-	logging.debug("MathFun.__main__():")
+	if DoDebugging:
+		logging.debug("MathFun.__main__():")
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 	RealMathHandler: "RealMathClass" = RealMathClass()
 	
@@ -274,7 +275,8 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	ELEVENOTHREE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(1103)
 	LARGE: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(26390)
 
-	logging.debug("Static variables declared. Starting dynamic variables.")
+	if DoDebugging:
+		logging.debug("Static variables declared. Starting dynamic variables.")
 	Sum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(0)
 	SCALAR: "BigNumFloat.BigNumFloat" = TWO*RealMathHandler.SquareRoot(TWO)/(NINETYNINE*NINETYNINE)
 
@@ -294,7 +296,8 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 
 	logging.debug("Starting Main Ramanujan Sato loop.")
 	for i in range(IterationDepth):
-		logging.debug("Iteration: %s/%s" % (i, IterationDepth))
+		if DoDebugging:
+			logging.debug("Iteration: %s/%s" % (i, IterationDepth))
 		IterationIndexInBigNum: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(i)
 
 		PartOneFacultyDivisor = RealMathHandler.Factulty(FOUR*IterationIndexInBigNum)
@@ -319,21 +322,3 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 
 	print("\n\nOutput: %s" % (Output.__repr__()))
 	# print("Delta known pi: %s" % (DeltaOutput))
-
-RamanujanSatoSeries(150)
-
-# def __main__():
-# 	i: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(2)
-
-# 	a: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(26390)
-# 	b: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(1103)
-# 	c: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(396)
-# 	d: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(4)
-
-# 	Output: "BigNumFloat.BigNumFloat" = (a*i+b)/RMHandlerGlobal.IntegerExponentiation(c, d*i)
-
-# 	print("Output: %s" % (Output.__repr__()))
-
-# __main__()
-
-input("End of program.")
