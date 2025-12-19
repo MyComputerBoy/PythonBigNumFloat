@@ -23,7 +23,7 @@ LOGLEVEL = logging.DEBUG
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 10
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 2000
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -306,12 +306,12 @@ class BigNumFloat():
 		
 		try:
 			IntegerPartLarger: int = int(str(LargerExponentMantissa)[:-(self.DivisionPrecisionInDigits)])
-			logging.debug("IntegerPart: %s" % (IntegerPartLarger))
+			# logging.debug("IntegerPart: %s" % (IntegerPartLarger))
 		except ValueError:
 			IntegerPartLarger = 0
 		try:
 			IntegerPartSmaller: int = int(str(SmallerExponentMantissa)[:(-self.DivisionPrecisionInDigits)])
-			logging.debug("IntegerPart: %s" % (IntegerPartSmaller))
+			# logging.debug("IntegerPart: %s" % (IntegerPartSmaller))
 		except ValueError:
 			IntegerPartSmaller = 0
 		
