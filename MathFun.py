@@ -32,7 +32,7 @@ logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
 class RealMathClass():
-	def __init__(self: Self, DoDebugging: bool = False) -> None:
+	def __init__(self: Self, DoDebugging: bool = True) -> None:
 		self.BNFFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
 		self.ONE: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
@@ -50,7 +50,10 @@ class RealMathClass():
 		# # except ValueError:
 		# # 	raise ValueError("Error: Input must be of type BigNumFloat.BigNumFloat.")
 		
-		for i in (Input + self.ONE):
+		for i in Input:
+			if self.DODEBUGGING:
+				logging.debug("i: %s" % (i))
+				logging.debug("Output: %s" % (Output))
 			Output *= i
 		
 		return Output
@@ -62,9 +65,16 @@ class RealMathClass():
 		return OutputDivisor/OutputDividend
 
 	def IntegerExponentiation(self: Self, Base: "BigNumFloat.BigNumFloat", Exponent: "BigNumFloat.BigNumFloat") -> "BigNumFloat.BigNumFloat":
+		if self.DODEBUGGING:
+			logging.debug("MathFun.RealMathClass.IntegerExponentiation(%s, %s)" % (Base, Exponent))
+		
 		Output: "BigNumFloat.BigNumFloat" = self.BNFFHandler.ConvertIEEEFloatToBigNumFloat(1)
 
-		for _ in (Exponent + self.ONE):
+		AddedExponent: "BigNumFloat.BigNumFloat" = Exponent + ONE
+		for i in AddedExponent:
+			if self.DODEBUGGING:
+				logging.debug("i: %s" % (i))
+				logging.debug("Output: %s" % (Output))
 			Output *= Base
 		
 		return Output
@@ -88,11 +98,16 @@ class RealMathClass():
 		Dividend: "BigNumFloat.BigNumFloat"
 		EstimateSquared: "BigNumFloat.BigNumFloat"
 
-		for i in range(IterationDepth):
+		for _ in range(IterationDepth):
+			if self.DODEBUGGING:
+				logging.debug("Estimate: %s" % (OutputEstimate))
 
 			EstimateSquared = OutputEstimate*OutputEstimate
 			Divisor = EstimateSquared-Input
 			Dividend = TWO * OutputEstimate
+
+			if self.DODEBUGGING:
+				logging.debug("Divisor: %s, Dividend: %s" % (Divisor, Dividend))
 
 			OutputEstimate -= Divisor/Dividend
 		
@@ -239,7 +254,7 @@ def MainMandelbrotRendering():
 	dTime = math.floor(EndTime-StartTime)
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
-def RamanujanSatoSeries(IterationDepth: int = 10):
+def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	logging.debug("MathFun.__main__():")
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 	RealMathHandler: "RealMathClass" = RealMathClass()
@@ -268,7 +283,7 @@ def RamanujanSatoSeries(IterationDepth: int = 10):
 
 	Output: "BigNumFloat.BigNumFloat"
 
-	KnownPi: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -1000, 31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989)
+	# KnownPi: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -1000, 31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989)
 
 	logging.debug("Starting Main Ramanujan Sato loop.")
 	for i in range(IterationDepth):
@@ -284,22 +299,22 @@ def RamanujanSatoSeries(IterationDepth: int = 10):
         
 		PartOne = PartOneFacultyDivisor/PartOneExponentDividend
 		PartTwo = PartTwoDivisor/PartTwoExponentDividend
+		if DoDebugging:
+			logging.debug("\nPartOne:  %s, PartTwo: %s" % (PartOne, PartTwo))
 
 		Sum += PartOne * PartTwo
 	
 	Output = ONE / (Sum * SCALAR)
-	DeltaOutput: "BigNumFloat.BigNumFloat" = KnownPi - Output
+	# DeltaOutput: "BigNumFloat.BigNumFloat" = KnownPi - Output
 
 	print("\n\nOutput: %s" % (Output))
-	print("Delta known pi: %s" % (DeltaOutput))
+	# print("Delta known pi: %s" % (DeltaOutput))
 
-RamanujanSatoSeries(200)
+RamanujanSatoSeries(10)
 
 # def __main__():
-# 	a: "BigNumFloat.BigNumFloat" = ONE/TWO
-# 	b: "BigNumFloat.BigNumFloat" = FOUR*FOUR
 
-# 	Output: "BigNumFloat.BigNumFloat" = b / a
+# 	Output: "BigNumFloat.BigNumFloat" = RMHandlerGlobal.Factulty(FOUR*FOUR)
 
 # 	print("Output: %s" % (Output))
 
