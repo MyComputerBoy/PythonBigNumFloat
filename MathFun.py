@@ -193,14 +193,14 @@ def MainMandelbrotRendering():
 
 	#Resolution stuff
 	IterationDepth: int = 1024
-	XResolution: int = 1920
-	YResolution: int = 1080
+	XResolution: int = 2560
+	YResolution: int = 1440
 
 	#Coordinate stuff
-	XStart: float = -1.150341291421
+	XStart: float = -1150339997082
 	YStart: float = 0.275699601513
 	XEnd: float = -1.150338702743
-	YEnd: float = 0.275701095725
+	YEnd: float = 0.275699975066
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
@@ -210,11 +210,11 @@ def MainMandelbrotRendering():
 	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
 	YResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YResolution)
 
-	XStartBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XStart)
-	XEndBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XEnd)
+	XStartBN: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -12, 1150339997082)
+	XEndBN:   "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -12, 1150338055572)
 
-	YStartBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YStart)
-	YEndBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YEnd)
+	YStartBN:  "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275698882967)
+	YEndBN:    "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275699975066)
 
 	#Convert more 'dynamic' variables
 	DXBN: "BigNumFloat.BigNumFloat" = XEndBN - XStartBN
@@ -235,11 +235,12 @@ def MainMandelbrotRendering():
 	YPosition = YStartBN
 
 	#Do the actual Mandelbrot calculations
-	for j in range(YResolution):
+	#Invert y axis for making the console output match the final output
+	for j in range(YResolution-1, -1, -1):
 		TemporaryOutputString: str = ""
 		for i in range(XResolution):
 			TemporaryComplexNumber = BigNumComplex(XPosition, YPosition)
-			logging.debug("Position: %s" % (TemporaryComplexNumber))
+			# logging.debug("Position: %s" % (TemporaryComplexNumber))
 
 			#Do actual iterations
 			TemporaryDepthInMandelbrot: int = DepthInMandelbrotSet(TemporaryComplexNumber, IterationDepth)
@@ -259,6 +260,7 @@ def MainMandelbrotRendering():
 	
 	EndTime = time.time()
 	dTime = math.floor(EndTime-StartTime)
+	print("Delta Time: %s" % (dTime))
 	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
 
 def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
@@ -322,3 +324,7 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 
 	print("\n\nOutput: %s" % (Output.__repr__()))
 	# print("Delta known pi: %s" % (DeltaOutput))
+
+MainMandelbrotRendering()
+
+input("Rendering done.")
