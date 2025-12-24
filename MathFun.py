@@ -24,6 +24,7 @@ from typing import Self
 from PIL import Image as IM
 import time
 import math
+import userpaths
 
 #Handle logging
 LOGLEVEL = logging.DEBUG
@@ -152,7 +153,7 @@ class BigNumComplex():
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
 
 class MandelbrotCoordinateClass():
-	def __inti__(
+	def __init__(
 		self: Self, 
 		XStart: "BigNumFloat.BigNumFloat", 
 		XEnd: "BigNumFloat.BigNumFloat", 
@@ -237,7 +238,7 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStartBN.Mantissa, YStartBN.Mantissa, XEndBN.Mantissa, YEndBN.Mantissa, IterationDepth, XResolution)
-	ImagePath: str = "D:/Users/hatel/Pictures/BigNumFloat/" + FormatName
+	ImagePath: str = userpaths.get_my_pictures() + FormatName
 
 	#Convert more 'dynamic' variables
 	DXBN: "BigNumFloat.BigNumFloat" = XEndBN - XStartBN
@@ -353,12 +354,12 @@ MandelBrotInformation: MandelbrotCoordinateClass = MandelbrotCoordinateClass(
 	BigNumFloat.BigNumFloat(False, -14, 115033805557266),
 	BigNumFloat.BigNumFloat(True, -12, 275698882967),
 	BigNumFloat.BigNumFloat(True, -12, 275699975066),
-	1024,
-	15,
-	2560,
-	1440,
+	512,
+	10,
+	1280,
+	720,
 )
 
-MainMandelbrotRendering(MainMandelbrotRendering)
+MainMandelbrotRendering(MandelBrotInformation, PathToSaveImages="C:/Users/hatel/Pictures/Mandelbrot Renders/")
 
 input("Rendering done.")
