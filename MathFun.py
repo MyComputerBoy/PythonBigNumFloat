@@ -151,6 +151,39 @@ class BigNumComplex():
 	def __str__(self: Self) -> str:
 		return "%s + %si" % (str(self.Real), str(self.Imaginary))
 
+class MandelbrotCoordinateClass():
+	def __inti__(
+		self: Self, 
+		XStart: "BigNumFloat.BigNumFloat", 
+		XEnd: "BigNumFloat.BigNumFloat", 
+		YStart: "BigNumFloat.BigNumFloat", 
+		YEnd: "BigNumFloat.BigNumFloat",
+		IterationDepth: int,
+		DigitsPrecision: int,
+		WidthResolution: int,
+		HeightResolution: int
+	) -> None:
+
+		#Coordinates
+		self.XStart: "BigNumFloat.BigNumFloat" = XStart
+		self.XEnd: "BigNumFloat.BigNumFloat" = XEnd
+
+		self.YStart: "BigNumFloat.BigNumFloat" = YStart
+		self.YEnd: "BigNumFloat.BigNumFloat" = YEnd
+
+		#Background information
+		self.IterationDepth: int = IterationDepth
+		self.DigitsPrecision: int = DigitsPrecision
+
+		self.WidthResolution: int = WidthResolution
+		self.HeightResolution: int = HeightResolution
+	
+	def GetCoordinates(self: Self) -> list["BigNumFloat.BigNumFloat"]:
+		return [self.XStart, self.XEnd, self.YStart, self.YEnd]
+	
+	def GetDetailInformations(self: Self) -> list[int]:
+		return [self.IterationDepth, self.DigitsPrecision, self.WidthResolution, self.HeightResolution]
+
 #Create BigNumFloat handler for ease of use, and define FUOR preemtively
 RMHandlerGlobal: "RealMathClass" = RealMathClass()
 BNFHandlerGlobal: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
@@ -186,25 +219,19 @@ def DepthInMandelbrotSet(InputComplexNumber: "BigNumComplex", IterationDepth: in
 
 	return IterationDepth
 
-def MainMandelbrotRendering():
+def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinateClass):
 	#Handle basic variables
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
 	#Resolution stuff
-	IterationDepth: int = 1024
-	XResolution: int = 2560
-	YResolution: int = 1440
+	IterationDepth, BNFHandler.DivisionPrecisionInDigits, XResolution, YResolution = MandelbrotRenderingInformation.GetDetailInformations()
 
 	#Convert static variables
 	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
 	YResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YResolution)
 
-	XStartBN: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033999708200)
-	XEndBN:   "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033805557266)
-
-	YStartBN:  "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275698882967)
-	YEndBN:    "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275699975066)
+	XStartBN, XEndBN, YStartBN, YEndBN = MandelbrotRenderingInformation.GetCoordinates()
 
 	#Handle path to save to image
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStartBN.Mantissa, YStartBN.Mantissa, XEndBN.Mantissa, YEndBN.Mantissa, IterationDepth, XResolution)
@@ -319,6 +346,17 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	print("\n\nOutput: %s" % (Output.__repr__()))
 	# print("Delta known pi: %s" % (DeltaOutput))
 
-MainMandelbrotRendering()
+MandelBrotInformation: MandelbrotCoordinateClass = MandelbrotCoordinateClass(
+	BigNumFloat.BigNumFloat(False, -14, 115033999708200),
+	BigNumFloat.BigNumFloat(False, -14, 115033805557266),
+	BigNumFloat.BigNumFloat(True, -12, 275698882967),
+	BigNumFloat.BigNumFloat(True, -12, 275699975066),
+	1024,
+	15,
+	2560,
+	1440,
+)
+
+MainMandelbrotRendering(MainMandelbrotRendering)
 
 input("Rendering done.")
