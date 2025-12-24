@@ -224,8 +224,10 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 	StartTime = time.time()
 	BNFHandler: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat()
 
+	global BNFHandlerGlobal
+
 	#Resolution stuff
-	IterationDepth, BNFHandler.DivisionPrecisionInDigits, XResolution, YResolution = MandelbrotRenderingInformation.GetDetailInformations()
+	IterationDepth, BNFHandlerGlobal.DivisionPrecisionInDigits, XResolution, YResolution = MandelbrotRenderingInformation.GetDetailInformations()
 
 	#Convert static variables
 	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
