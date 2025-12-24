@@ -23,7 +23,7 @@ LOGLEVEL = logging.DEBUG
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
 
-DIVISIONPRECISIONINDIGITSGLOBAL: int = 15
+DIVISIONPRECISIONINDIGITSGLOBAL: int = 7
 
 class BigNumFloat():
 	"""BigNumFloat.BigNumFloat(Sign: bool, Exponent: int, Mantissa: int) -> Main user class for storing and working with the BigNum class
@@ -36,7 +36,7 @@ class BigNumFloat():
 	ConvertIEEEFloatToBigNumFloat(self: Self, InputFloat: float) -> "BigNumFloat" -> Main function to convert Python native floats to BigNumFloats
 	"""
 
-	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = DIVISIONPRECISIONINDIGITSGLOBAL, DoDebugging: bool = False) -> None:
+	def __init__(self: Self, Sign: bool = True, Exponent: int = 0, Mantissa: int = 0, DivisionPrecisionInDigits: int = DIVISIONPRECISIONINDIGITSGLOBAL, DoDebugging: bool = True) -> None:
 		#Basic structure of IEEE 754 floats
 		#NOTE!!
 		#Since Python has signed ints by default, I will redefine the exponent to just be normal numbers, no offset or anything
@@ -242,7 +242,7 @@ class BigNumFloat():
 		OutputSign = not (self.Sign ^ Other.Sign)
 
 		#Make sure the exponent is handled properly
-		OutputExponent = LargerExponent + SmallerExponent
+		OutputExponent = LargerExponent + SmallerExponent - self.DivisionPrecisionInDigits
 
 		# logging.debug("OutputExponent: %s" % (OutputExponent))
 		if self.DODEBUGGING:
@@ -354,7 +354,7 @@ class BigNumFloat():
 				#Calculate final subtraction with everything compensated for and aligned properly
 				SubtractionResult = DivisorMantissa - TemporaryMultipliedScaledDividend
 				if self.DODEBUGGING:
-					logging.debug("Divisor: %s, dividend: %s, result: %s, index: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult, j))
+					logging.debug("Divisor: %s, dividend: %s, result: %s, index: %s, i: %s" % (DivisorMantissa, TemporaryMultipliedScaledDividend, SubtractionResult, j, i))
 
 				if SubtractionResult >= 0:
 					if self.DODEBUGGING:
@@ -371,10 +371,12 @@ class BigNumFloat():
 			logging.debug("StringOutput: %s" % (OutputMantissaAsString))
 		OutputMantissa = self.StringToIntBruteForce(OutputMantissaAsString)
 
-		#Make sure the exponent is handled properly
-		if self.DODEBUGGING:
-			logging.debug("IntegerPart: %s, IntegerPart: %s" % (IntegerPartLarger, IntegerPartSmaller))
-		OutputExponent = self.Exponent - Other.Exponent - DividendLength - self.DivisionPrecisionInDigits# - (int(len(str(IntegerPartLarger)))+int(len(str(IntegerPartSmaller))) - 3)
+		# #Make sure the exponent is handled properly
+		# if self.DODEBUGGING:
+		# 	logging.debug("IntegerPart: %s, IntegerPart: %s" % (IntegerPartLarger, IntegerPartSmaller))
+		OutputExponent = self.Exponent + Other.Exponent - DividendLength# - self.DivisionPrecisionInDigits - (int(len(str(IntegerPartLarger)))+int(len(str(IntegerPartSmaller))) - 3)
+		# logging.debug("Self.Exponent: %s, Other.Exponent: %s, DividendLength: %s, DivisionPrecisionInDigits: %s" % (self.Exponent, Other.Exponent, DividendLength, self.DivisionPrecisionInDigits))
+		# logging.debug("OutputExponent: %s" % (OutputExponent))
 
 		#Make sure signs are handled properly
 		OutputSign = not (self.Sign ^ Other.Sign)

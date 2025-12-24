@@ -197,6 +197,7 @@ class MandelbrotCoordinateClass():
 		self.ZoomNonantPath: list[list[MandelbrotNonantX|MandelbrotNonantY]] = ZoomPath
 	
 	def GetCoordinates(self: Self) -> list["BigNumFloat.BigNumFloat"]:
+		logging.debug("MathFun.GetCoordinates():")
 		global BNFHandlerGlobal
 
 		TWO: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(2)
@@ -207,13 +208,19 @@ class MandelbrotCoordinateClass():
 		AspectRatioMultiplier: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(self.AspectRatio[1]/self.AspectRatio[0])
 		HalfDY: "BigNumFloat.BigNumFloat" = (self.DX*AspectRatioMultiplier) / TWO
 
+		logging.debug("DX: %s" % (self.DX))
+		logging.debug("HalfDX: %s, HalfDY: %s" % (HalfDX, HalfDY))
+
 		#Calculate actual coordinates based on ZoomNonantPath
 		WorkingXStart: "BigNumFloat.BigNumFloat" = self.XMiddle - HalfDX
 		WorkingXEnd: "BigNumFloat.BigNumFloat" = self.XMiddle + HalfDX
 
+		logging.debug("X Coordinates: %s, %s" % (WorkingXStart, WorkingXEnd))
+
 		WorkingYStart: "BigNumFloat.BigNumFloat" = self.YMiddle - HalfDY
 		WorkingYEnd: "BigNumFloat.BigNumFloat" = self.YMiddle + HalfDY
 
+		logging.debug("Y Coordinates: %s, %s" % (WorkingYStart, WorkingYEnd))
 		
 		CurrentXThirds: "BigNumFloat.BigNumFloat" 
 		CurrentYThirds: "BigNumFloat.BigNumFloat" 
@@ -333,6 +340,8 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 	XPosition = XStartBN
 	YPosition = YStartBN
 
+	input("Starting main loop.")
+
 	#Do the actual Mandelbrot calculations
 	#Invert y axis for making the console output match the final output
 	for j in range(YResolution-1, -1, -1):
@@ -435,19 +444,16 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	# print("Delta known pi: %s" % (DeltaOutput))
 
 
-XStart: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033999708200)
-InitialDX: "BigNumFloat.BigNumFloat" = XStart - BigNumFloat.BigNumFloat(False, -14, 115033805557266)
-XMiddle: "BigNumFloat.BigNumFloat" = XStart + (InitialDX/TWO)
+XMiddle: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, 0, 0)
+InitialDX: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, 0, 1)
 
-YStart: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275698882967)
-InitialDY: "BigNumFloat.BigNumFloat" = YStart - BigNumFloat.BigNumFloat(True, -12, 275699975066)
-YMiddle: "BigNumFloat.BigNumFloat" = YStart + (InitialDY/TWO)
+YMiddle: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, 0, 0)
 
 MandelBrotInformation: MandelbrotCoordinateClass = MandelbrotCoordinateClass(
 	XMiddle,
 	YMiddle,
 	InitialDX,
-	512,
+	128,
 	7,
 	1280,
 	720,
