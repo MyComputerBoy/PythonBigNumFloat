@@ -285,7 +285,15 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 	EndTime = time.time()
 	dTime = math.floor(EndTime-StartTime)
 	print("Delta Time: %s" % (dTime))
-	WorkingImage.save("%s,%ss.tiff" % (ImagePath, dTime)) # type: ignore
+
+	FinalImagePath: str = "%s,%ss.tiff" % (ImagePath, dTime)
+
+	#Try except so you have the ability to manually save the images without the raising of the error throwing everything out
+	try:
+		WorkingImage.save(FinalImagePath) # type: ignore
+	except Exception:
+		print("Error: Could not save image to \"%s\"" % (FinalImagePath))
+		input("Press [Enter] to continue.")
 
 def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	if DoDebugging:
