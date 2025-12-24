@@ -196,25 +196,19 @@ def MainMandelbrotRendering():
 	XResolution: int = 2560
 	YResolution: int = 1440
 
-	#Coordinate stuff
-	XStart: float = -1150339997082
-	YStart: float = 0.275699601513
-	XEnd: float = -1.150338702743
-	YEnd: float = 0.275699975066
-
-	#Handle path to save to image
-	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStart, YStart, XEnd, YEnd, IterationDepth, XResolution)
-	ImagePath: str = "D:/Users/hatel/Pictures/BigNumFloat/" + FormatName
-
 	#Convert static variables
 	XResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(XResolution)
 	YResolutionBN: "BigNumFloat.BigNumFloat" = BNFHandler.ConvertIEEEFloatToBigNumFloat(YResolution)
 
-	XStartBN: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -12, 1150339997082)
-	XEndBN:   "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -12, 1150338055572)
+	XStartBN: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033999708200)
+	XEndBN:   "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033805557266)
 
 	YStartBN:  "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275698882967)
 	YEndBN:    "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275699975066)
+
+	#Handle path to save to image
+	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStartBN.Mantissa, YStartBN.Mantissa, XEndBN.Mantissa, YEndBN.Mantissa, IterationDepth, XResolution)
+	ImagePath: str = "D:/Users/hatel/Pictures/BigNumFloat/" + FormatName
 
 	#Convert more 'dynamic' variables
 	DXBN: "BigNumFloat.BigNumFloat" = XEndBN - XStartBN
