@@ -25,12 +25,24 @@ from PIL import Image as IM
 import time
 import math
 import userpaths
+from enum import Enum
+import os
 
 #Handle logging
 LOGLEVEL = logging.DEBUG
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 logging.getLogger().setLevel(LOGLEVEL)
+
+class MandelbrotNonantX(Enum):
+	Left = 0
+	Middle = 1
+	Right = 2
+
+class MandelbrotNonantY(Enum):
+	Upper = 0
+	Middle = 1
+	Lower = 2
 
 class RealMathClass():
 	def __init__(self: Self, DoDebugging: bool = False) -> None:
@@ -155,22 +167,21 @@ class BigNumComplex():
 class MandelbrotCoordinateClass():
 	def __init__(
 		self: Self, 
-		XStart: "BigNumFloat.BigNumFloat", 
-		XEnd: "BigNumFloat.BigNumFloat", 
-		YStart: "BigNumFloat.BigNumFloat", 
-		YEnd: "BigNumFloat.BigNumFloat",
+		XMiddle: "BigNumFloat.BigNumFloat", 
+		YMiddle: "BigNumFloat.BigNumFloat", 
+		InitialDX: "BigNumFloat.BigNumFloat",
 		IterationDepth: int,
 		DigitsPrecision: int,
 		WidthResolution: int,
-		HeightResolution: int
+		HeightResolution: int,
+		ZoomPath: list[list[MandelbrotNonantX|MandelbrotNonantY]] = None,
 	) -> None:
 
 		#Coordinates
-		self.XStart: "BigNumFloat.BigNumFloat" = XStart
-		self.XEnd: "BigNumFloat.BigNumFloat" = XEnd
+		self.XMiddle: "BigNumFloat.BigNumFloat" = XMiddle
+		self.YMiddle: "BigNumFloat.BigNumFloat" = YMiddle
 
-		self.YStart: "BigNumFloat.BigNumFloat" = YStart
-		self.YEnd: "BigNumFloat.BigNumFloat" = YEnd
+		self.DX: "BigNumFloat.BigNumFloat" = InitialDX
 
 		#Background information
 		self.IterationDepth: int = IterationDepth
@@ -178,12 +189,72 @@ class MandelbrotCoordinateClass():
 
 		self.WidthResolution: int = WidthResolution
 		self.HeightResolution: int = HeightResolution
+
+		ResolutionGCD: int = math.gcd(self.WidthResolution, self.HeightResolution)
+
+		self.AspectRatio: list[int] = [self.WidthResolution/ResolutionGCD, self.HeightResolution/ResolutionGCD]
+
+		self.ZoomNonantPath: list[list[MandelbrotNonantX|MandelbrotNonantY]] = ZoomPath
 	
 	def GetCoordinates(self: Self) -> list["BigNumFloat.BigNumFloat"]:
-		return [self.XStart, self.XEnd, self.YStart, self.YEnd]
+		global BNFHandlerGlobal
+
+		TWO: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(2)
+		THREE: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(3)
+
+		#Handle aspect ratio
+		HalfDX: "BigNumFloat.BigNumFloat" = self.DX/TWO
+		AspectRatioMultiplier: "BigNumFloat.BigNumFloat" = BNFHandlerGlobal.ConvertIEEEFloatToBigNumFloat(self.AspectRatio[1]/self.AspectRatio[0])
+		HalfDY: "BigNumFloat.BigNumFloat" = (self.DX*AspectRatioMultiplier) / TWO
+
+		#Calculate actual coordinates based on ZoomNonantPath
+		WorkingXStart: "BigNumFloat.BigNumFloat" = self.XMiddle - HalfDX
+		WorkingXEnd: "BigNumFloat.BigNumFloat" = self.XMiddle + HalfDX
+
+		WorkingYStart: "BigNumFloat.BigNumFloat" = self.YMiddle - HalfDY
+		WorkingYEnd: "BigNumFloat.BigNumFloat" = self.YMiddle + HalfDY
+
+		
+		CurrentXThirds: "BigNumFloat.BigNumFloat" 
+		CurrentYThirds: "BigNumFloat.BigNumFloat" 
+
+		#Loop through zoom path to calculate actual coordinates
+		for ZoomPath in self.ZoomNonantPath:
+			XPath, YPath = ZoomPath
+			CurrentXThirds = (WorkingXEnd - WorkingXStart)/THREE
+			CurrentYThirds = (WorkingYEnd - WorkingYStart)/THREE
+
+			if XPath == MandelbrotNonantX.Left:
+				WorkingXEnd = WorkingXStart + CurrentXThirds
+			elif XPath == MandelbrotNonantX.Middle:
+				WorkingXStart = WorkingXStart + CurrentXThirds
+				WorkingXEnd = WorkingXEnd - CurrentXThirds
+			elif XPath == MandelbrotNonantX.Right:
+				WorkingXStart = WorkingXEnd - CurrentXThirds
+			elif XPath is None:
+				pass
+			else:
+				raise ValueError("Error: ZoomPath contains illegal X Path.")
+			
+			if YPath == MandelbrotNonantY.Upper:
+				WorkingYEnd = WorkingXStart + CurrentYThirds
+			elif YPath == MandelbrotNonantY.Middle:
+				WorkingYStart = WorkingYStart + CurrentYThirds
+				WorkingYEnd = WorkingYEnd - CurrentXThirds
+			elif YPath == MandelbrotNonantY.Lower:
+				WorkingYStart = WorkingYEnd - CurrentYThirds
+			elif YPath is None:
+				pass
+			else:
+				raise ValueError("Error: ZoomPath contains illegal Y Path.")
+		
+		return [WorkingXStart, WorkingXEnd, WorkingYStart, WorkingYEnd]
 	
 	def GetDetailInformations(self: Self) -> list[int]:
 		return [self.IterationDepth, self.DigitsPrecision, self.WidthResolution, self.HeightResolution]
+	
+	def ZoomInByThreeByThree(self: Self, NonantPath: list[list[MandelbrotNonantX|MandelbrotNonantY]]) -> None:
+		self.ZoomNonantPath = NonantPath
 
 #Create BigNumFloat handler for ease of use, and define FUOR preemtively
 RMHandlerGlobal: "RealMathClass" = RealMathClass()
@@ -237,8 +308,12 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 	XStartBN, XEndBN, YStartBN, YEndBN = MandelbrotRenderingInformation.GetCoordinates()
 
 	#Handle path to save to image
+	MandelbrotRendersFolder: str = userpaths.get_my_pictures() + "/Mandelbrot Renders/"
+	if not os.path.exists(MandelbrotRendersFolder):
+		os.makedirs(MandelbrotRendersFolder)
+
 	FormatName: str = "%s.%s,%s.%s,IterationDepth%s,Resolution%s" % (XStartBN.Mantissa, YStartBN.Mantissa, XEndBN.Mantissa, YEndBN.Mantissa, IterationDepth, XResolution)
-	ImagePath: str = userpaths.get_my_pictures() + FormatName
+	ImagePath: str = MandelbrotRendersFolder + FormatName
 
 	#Convert more 'dynamic' variables
 	DXBN: "BigNumFloat.BigNumFloat" = XEndBN - XStartBN
@@ -294,6 +369,8 @@ def MainMandelbrotRendering(MandelbrotRenderingInformation: MandelbrotCoordinate
 	except Exception:
 		print("Error: Could not save image to \"%s\"" % (FinalImagePath))
 		input("Press [Enter] to continue.")
+	
+	return WorkingImage
 
 def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	if DoDebugging:
@@ -357,17 +434,26 @@ def RamanujanSatoSeries(IterationDepth: int = 10, DoDebugging: bool = True):
 	print("\n\nOutput: %s" % (Output.__repr__()))
 	# print("Delta known pi: %s" % (DeltaOutput))
 
+
+XStart: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(False, -14, 115033999708200)
+InitialDX: "BigNumFloat.BigNumFloat" = XStart - BigNumFloat.BigNumFloat(False, -14, 115033805557266)
+XMiddle: "BigNumFloat.BigNumFloat" = XStart + (InitialDX/TWO)
+
+YStart: "BigNumFloat.BigNumFloat" = BigNumFloat.BigNumFloat(True, -12, 275698882967)
+InitialDY: "BigNumFloat.BigNumFloat" = YStart - BigNumFloat.BigNumFloat(True, -12, 275699975066)
+YMiddle: "BigNumFloat.BigNumFloat" = YStart + (InitialDY/TWO)
+
 MandelBrotInformation: MandelbrotCoordinateClass = MandelbrotCoordinateClass(
-	BigNumFloat.BigNumFloat(False, -14, 115033999708200),
-	BigNumFloat.BigNumFloat(False, -14, 115033805557266),
-	BigNumFloat.BigNumFloat(True, -12, 275698882967),
-	BigNumFloat.BigNumFloat(True, -12, 275699975066),
+	XMiddle,
+	YMiddle,
+	InitialDX,
 	512,
-	10,
+	7,
 	1280,
 	720,
+	[[None, None]]
 )
 
-MainMandelbrotRendering(MandelBrotInformation, PathToSaveImages="C:/Users/hatel/Pictures/Mandelbrot Renders/")
+MandelbrotImage = MainMandelbrotRendering(MandelBrotInformation)
 
 input("Rendering done.")
