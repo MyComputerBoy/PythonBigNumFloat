@@ -4,7 +4,7 @@
 #Libraries used
 import logging
 from typing import Self
-import math
+# import math
 
 #Handle logging
 LOGLEVEL = logging.DEBUG
@@ -25,8 +25,8 @@ class BigNumFloat():
 		self.DECIMALPRECISIONINDIGITS: int = DecimalPrecisionInDigits
 	
 	def CheckLargerThanDecimalDigitLength(self: Self, IntegerToCheck: int) -> list[int]:
-		CarryOut: int
-		OutputInteger: int
+		CarryOut: int = 0
+		OutputInteger: int = 0
 
 		if IntegerToCheck >= 10**self.DECIMALPRECISIONINDIGITS:
 			OutputInteger = IntegerToCheck % (10**self.DECIMALPRECISIONINDIGITS)
@@ -34,34 +34,44 @@ class BigNumFloat():
 
 		return [CarryOut, OutputInteger]
 	
-	def ConvertUnsignedToSigned(self: Self, InputDecimalMantissa: int, InputIntegerMantissa: int, Sign: bool) -> list[int]:
+	def ConvertUnsignedToSigned(self: Self, InputDecimalMantissa: int = 0, InputIntegerMantissa: int = 0, Sign: bool = True) -> list[int]:
 		if not Sign:
 			InputDecimalMantissa *= -1
 			InputIntegerMantissa *= -1
 		
-		return InputDecimalMantissa, InputIntegerMantissa
+		return [InputDecimalMantissa, InputIntegerMantissa]
 	
-	def ConvertSignedToUnsigned(self: Self, InputDecimalMantissa: int, inputIntegerMantissa) -> list[int]:
+	def ConvertSignedToUnsigned(self: Self, InputDecimalMantissa: int, inputIntegerMantissa: int) -> list[int]:
 		OutputSign: int = 1
 		if inputIntegerMantissa < 0:
 			InputDecimalMantissa *= -1
 			inputIntegerMantissa *= -1
 			OutputSign = 0
 		
-		return OutputSign, InputDecimalMantissa, inputIntegerMantissa
+		return [OutputSign, InputDecimalMantissa, inputIntegerMantissa]
 
 	def __add__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Boring setup
 		OutputSign: bool = self.Sign
-		OutputExponent: int
+		OutputSignInt: int
+		OutputExponent: int = 0
 		OutputIntegerPartMantissa: int
 		OutputDecimalPartMantissa: int
 
+		#Making sure the input numbers are signed for easier computations
 		self.DecimalPartMantissa, self.IntegerPartMantissa = self.ConvertUnsignedToSigned(self.DecimalPartMantissa, self.IntegerPartMantissa, self.Sign)
-		Other.DecimalPartMantissa, Other.IntegerPartMantissa = self.CheckLargerThanDecimalDigitLength(Other.DecimalPartMantissa, Other.IntegerPartMantissa, Other.Sign)
+		Other.DecimalPartMantissa, Other.IntegerPartMantissa = Other.ConvertUnsignedToSigned(Other.DecimalPartMantissa, Other.IntegerPartMantissa, Other.Sign)
+
+		#Do the actual computation on the decimal part
+		OutputDecimalPartMantissa = self.DecimalPartMantissa + Other.DecimalPartMantissa
 		
-		DecimalPartCarryOut, OutputDecimalPartMantissa = self.CheckLargerThanDecimalDigitLength(self.DecimalPartMantissa + Other.DecimalPartMantissa)
+		#Make sure the decimal part is within the defined size
+		DecimalPartCarryOut, OutputDecimalPartMantissa = self.CheckLargerThanDecimalDigitLength(OutputDecimalPartMantissa)
+
+		#Do the actual computation on the integer part
 		OutputIntegerPartMantissa = self.IntegerPartMantissa + Other.IntegerPartMantissa + DecimalPartCarryOut
 
+		#Making sure the output is unsigned, but using the self.Signed bool for sign
 		OutputSignInt, OutputDecimalPartMantissa, OutputIntegerPartMantissa = self.ConvertSignedToUnsigned(OutputDecimalPartMantissa, OutputIntegerPartMantissa)
 		if OutputSignInt == 1:
 			OutputSign = True
@@ -69,4 +79,69 @@ class BigNumFloat():
 			OutputSign = False
 
 		return BigNumFloat(OutputSign, OutputExponent, OutputIntegerPartMantissa, OutputDecimalPartMantissa)
+	
+	def __sub__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Boring setup
+		OutputSign: bool = self.Sign
+		OutputSignInt: int
+		OutputExponent: int = 0
+		OutputIntegerPartMantissa: int
+		OutputDecimalPartMantissa: int
 
+		#Making sure the input numbers are signed for easier computations
+		self.DecimalPartMantissa, self.IntegerPartMantissa = self.ConvertUnsignedToSigned(self.DecimalPartMantissa, self.IntegerPartMantissa, self.Sign)
+		Other.DecimalPartMantissa, Other.IntegerPartMantissa = Other.ConvertUnsignedToSigned(Other.DecimalPartMantissa, Other.IntegerPartMantissa, Other.Sign)
+
+		#Do the actual computation on the decimal part
+		OutputDecimalPartMantissa = self.DecimalPartMantissa - Other.DecimalPartMantissa
+		
+		#Make sure the decimal part is within the defined size
+		DecimalPartCarryOut, OutputDecimalPartMantissa = self.CheckLargerThanDecimalDigitLength(OutputDecimalPartMantissa)
+
+		#Do the actual computation on the integer part
+		OutputIntegerPartMantissa = self.IntegerPartMantissa + Other.IntegerPartMantissa - DecimalPartCarryOut
+
+		#Making sure the output is unsigned, but using the self.Signed bool for sign
+		OutputSignInt, OutputDecimalPartMantissa, OutputIntegerPartMantissa = self.ConvertSignedToUnsigned(OutputDecimalPartMantissa, OutputIntegerPartMantissa)
+		if OutputSignInt == 1:
+			OutputSign = True
+		else:
+			OutputSign = False
+
+		return BigNumFloat(OutputSign, OutputExponent, OutputIntegerPartMantissa, OutputDecimalPartMantissa)
+	
+	def __mul__(self: Self, Other: "BigNumFloat") -> "BigNumFloat":
+		#Boring setup
+		OutputSign: bool = self.Sign
+		OutputSignInt: int
+		OutputExponent: int = 0
+		OutputIntegerPartMantissa: int = 0
+		OutputDecimalPartMantissa: int = 0
+		OutputMantissaWorker: int
+		WorkerMantissaA: int
+		WorkerMantissaB: int
+		ShiftingFactor: int = 10**(self.DECIMALPRECISIONINDIGITS)
+
+		#Making sure the input numbers are signed for easier computations
+		self.DecimalPartMantissa, self.IntegerPartMantissa = self.ConvertUnsignedToSigned(self.DecimalPartMantissa, self.IntegerPartMantissa, self.Sign)
+		Other.DecimalPartMantissa, Other.IntegerPartMantissa = Other.ConvertUnsignedToSigned(Other.DecimalPartMantissa, Other.IntegerPartMantissa, Other.Sign)
+
+		#Convert input numbers to singular integers for easier computation
+		WorkerMantissaA = self.IntegerPartMantissa * ShiftingFactor + self.DecimalPartMantissa
+		WorkerMantissaB = Other.IntegerPartMantissa * ShiftingFactor + Other.DecimalPartMantissa
+
+		#Do the actual computation
+		OutputMantissaWorker = WorkerMantissaA * WorkerMantissaB
+
+		#Make sure the output is within specs of format
+		OutputDecimalPartMantissa = int(OutputMantissaWorker / ShiftingFactor) % ShiftingFactor
+		OutputIntegerPartMantissa = int(OutputMantissaWorker / (ShiftingFactor * ShiftingFactor))
+
+		#Making sure the output is unsigned, but using the self.Signed bool for sign
+		OutputSignInt, OutputDecimalPartMantissa, OutputIntegerPartMantissa = self.ConvertSignedToUnsigned(OutputDecimalPartMantissa, OutputDecimalPartMantissa)
+		if OutputSignInt == 1:
+			OutputSign = True
+		else:
+			OutputSign = False
+
+		return BigNumFloat(OutputSign, OutputExponent, OutputIntegerPartMantissa, OutputDecimalPartMantissa)
